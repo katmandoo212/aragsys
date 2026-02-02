@@ -1,0 +1,9 @@
+default_query_model: "glm-4.7:cloud"
+
+pipelines:
+  naive_flow:
+    query_model: "glm-4.7:cloud"
+    techniques: [naive_rag, generation]
+  advanced_flow:
+    query_model: "glm-4.7:cloud"
+    techniques: [hyde, naive_rag, rerank, generation]
