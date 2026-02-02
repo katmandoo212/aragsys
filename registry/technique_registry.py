@@ -3,6 +3,10 @@ from typing import Any, Mapping
 import yaml
 
 
+class TechniqueNotFoundError(Exception):
+    pass
+
+
 @dataclass
 class TechniqueMetadata:
     name: str

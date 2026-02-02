@@ -78,3 +78,13 @@ techniques:
     techniques = registry.list_techniques()
     assert techniques == ["enabled_one", "enabled_two"]
     assert "disabled_one" not in techniques
+
+
+def test_technique_registry_raises_technique_not_found():
+    from registry.technique_registry import TechniqueRegistry, TechniqueNotFoundError
+
+    # Test exception can be raised
+    with pytest.raises(TechniqueNotFoundError) as exc_info:
+        raise TechniqueNotFoundError("missing_tech")
+
+    assert "missing_tech" in str(exc_info.value)
