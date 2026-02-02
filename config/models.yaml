@@ -1,0 +1,14 @@
+ollama:
+  base_url: "http://localhost:11434"
+
+query_models:
+  default: "glm-4.7:cloud"
+
+embedding_models:
+  default: "bge-m3:latest"
+  available:
+    - "nomic-embed-text-v2-moe:latest"
+    - "qwen3-embedding:latest"
+    - "granite-embedding:278m"
+    - "bge-m3:latest"
+    - "mxbai-embed-large:latest"
