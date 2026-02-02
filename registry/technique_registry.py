@@ -33,3 +33,6 @@ class TechniqueRegistry:
         if name not in self._techniques:
             raise ValueError(f"Technique '{name}' not found")
         return self._techniques[name]
+
+    def list_techniques(self) -> list[str]:
+        return [name for name, meta in self._techniques.items() if meta.enabled]

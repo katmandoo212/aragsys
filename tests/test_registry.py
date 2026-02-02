@@ -54,3 +54,27 @@ techniques:
     assert metadata.name == "naive_rag"
     assert metadata.enabled is True
     assert metadata.config == {"chunk_size": 500}
+
+
+def test_technique_registry_lists_enabled_only(tmp_path):
+    yaml_content = """
+techniques:
+  enabled_one:
+    enabled: true
+    config: {}
+  enabled_two:
+    enabled: true
+    config: {}
+  disabled_one:
+    enabled: false
+    config: {}
+"""
+    yaml_file = tmp_path / "techniques.yaml"
+    yaml_file.write_text(yaml_content)
+
+    from registry.technique_registry import TechniqueRegistry
+    registry = TechniqueRegistry(str(yaml_file))
+
+    techniques = registry.list_techniques()
+    assert techniques == ["enabled_one", "enabled_two"]
+    assert "disabled_one" not in techniques
