@@ -35,7 +35,7 @@ class TechniqueRegistry:
 
     def get_technique(self, name: str) -> TechniqueMetadata:
         if name not in self._techniques:
-            raise ValueError(f"Technique '{name}' not found")
+            raise TechniqueNotFoundError(f"Technique '{name}' not found")
         return self._techniques[name]
 
     def list_techniques(self) -> list[str]:

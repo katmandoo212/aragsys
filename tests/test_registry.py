@@ -88,3 +88,15 @@ def test_technique_registry_raises_technique_not_found():
         raise TechniqueNotFoundError("missing_tech")
 
     assert "missing_tech" in str(exc_info.value)
+
+
+def test_technique_registry_get_missing_raises_custom_exception(tmp_path):
+    yaml_content = "techniques: {}"
+    yaml_file = tmp_path / "techniques.yaml"
+    yaml_file.write_text(yaml_content)
+
+    from registry.technique_registry import TechniqueRegistry, TechniqueNotFoundError
+    registry = TechniqueRegistry(str(yaml_file))
+
+    with pytest.raises(TechniqueNotFoundError):
+        registry.get_technique("does_not_exist")
