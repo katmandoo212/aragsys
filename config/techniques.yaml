@@ -1,0 +1,15 @@
+techniques:
+  naive_rag:
+    enabled: true
+    config:
+      chunk_size: 500
+      top_k: 5
+      embedding_model: "bge-m3:latest"
+  hyde:
+    enabled: true
+    config:
+      query_expansions: 3
+      embedding_model: "mxbai-embed-large:latest"
+      query_model: "glm-4.7:cloud"
+  disabled_technique:
+    enabled: false
