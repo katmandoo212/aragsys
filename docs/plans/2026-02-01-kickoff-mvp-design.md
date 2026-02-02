@@ -1,7 +1,7 @@
 # Kickoff MVP Design: Architecture Foundation
 
 **Date:** 2026-02-01
-**Status:** Approved for Implementation
+**Status:** Implemented
 
 ## Overview
 
@@ -234,3 +234,35 @@ class MockTechnique:
 | Generic TechniqueNode | Single implementation works for all techniques |
 | Shared state dict | Simple, flexible communication between nodes |
 | Disabled flag | Techniques can be temporarily disabled without removal |
+
+---
+
+## Implementation Notes
+
+**Completed:** 2026-02-01
+**Branch:** feature/kickoff-mvp
+**Tests:** All passing
+
+Components implemented:
+- TechniqueRegistry with YAML loading
+- TechniqueMetadata dataclass
+- PipelineBuilder with node creation
+- TechniqueNode with prep/exec/post
+- OllamaClient with config loading
+- Integration test for round-trip verification
+
+---
+
+## Implementation Notes
+
+**Completed:** 2026-02-01
+**Branch:** feature/kickoff-mvp
+**Tests:** All passing
+
+Components implemented:
+- TechniqueRegistry with YAML loading
+- TechniqueMetadata dataclass
+- PipelineBuilder with node creation
+- TechniqueNode with prep/exec/post
+- OllamaClient with config loading
+- Integration test for round-trip verification
