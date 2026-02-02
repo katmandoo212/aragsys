@@ -8,7 +8,9 @@ class TechniqueNode(Node):
     config: dict
 
     def prep(self, shared: dict):
-        return shared
+        query = shared.get("query")
+        docs = shared.get("retrieved_docs", [])
+        return query, docs
 
     def exec(self, prep_result):
         return prep_result
