@@ -72,4 +72,4 @@ class TestMultiQueryRetrieval:
 
         # Should deduplicate by document id
         assert len(documents) <= 4  # 2 results per query * 2 queries, but deduplicated
-        assert ollama_client.generate.assert_called_once()
+        ollama_client.generate.assert_called_once()
