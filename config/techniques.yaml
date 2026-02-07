@@ -1,11 +1,17 @@
 techniques:
   naive_rag:
+    class: techniques.naive_rag.NaiveRAGTechnique
     enabled: true
     config:
       chunk_size: 500
       top_k: 5
       embedding_model: "bge-m3:latest"
       collection_name: "documents"
+      supported_formats: [txt, pdf, md, markdown]
+      pdf:
+        extract_tables: true
+        extract_figures: true
+        heading_min_size: 16
   hyde:
     enabled: true
     config:
