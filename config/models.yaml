@@ -12,3 +12,6 @@ embedding_models:
     - "granite-embedding:278m"
     - "bge-m3:latest"
     - "mxbai-embed-large:latest"
+
+vector_store:
+  persist_directory: "./data/chroma"
