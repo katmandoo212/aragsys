@@ -54,4 +54,4 @@ class TestHybridRetrieval:
         documents = technique.retrieve("test query")
 
         assert len(documents) >= 1
-        assert ollama_client.embed.assert_called_once()
+        ollama_client.embed.assert_called_once()
