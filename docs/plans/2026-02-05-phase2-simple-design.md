@@ -1,6 +1,6 @@
 # Phase 2: Simple Naive RAG - Design
 
-**Status:** Approved for Implementation
+**Status:** Implemented
 **Date:** 2026-02-05
 
 ---
@@ -220,3 +220,18 @@ This minimal foundation enables:
 - Phase 4: Add advanced retrieval (HyDE, Multi-Query)
 - Phase 5: Add reranking and compression
 - Phase 6: Add generation
+
+---
+
+## Implementation Notes
+
+**Completed:** 2026-02-05
+**Branch:** feature/phase2-simple
+**Tests:** All passing (26 total: 12 from Phase 1 + 14 from Phase 2)
+
+Components implemented:
+- TextChunker for TXT paragraph chunking
+- VectorStore wrapping ChromaDB
+- NaiveRAGTechnique implementing retrieve protocol
+- OllamaClient.embed() for query embeddings
+- Document dataclass for retrieval results
