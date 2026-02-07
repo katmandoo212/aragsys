@@ -5,6 +5,7 @@ techniques:
       chunk_size: 500
       top_k: 5
       embedding_model: "bge-m3:latest"
+      collection_name: "documents"
   hyde:
     enabled: true
     config:
