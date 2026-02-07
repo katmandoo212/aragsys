@@ -25,3 +25,18 @@ class OllamaClient:
 
         data = response.json()
         return data.get("embedding", [])
+
+    def generate(self, prompt: str, model: str) -> str:
+        """Generate text using the specified model."""
+        url = f"{self.base_url}/api/generate"
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False
+        }
+
+        response = httpx.Client().post(url, json=payload)
+        response.raise_for_status()
+
+        data = response.json()
+        return data.get("response", "")
