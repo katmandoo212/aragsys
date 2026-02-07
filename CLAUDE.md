@@ -8,23 +8,25 @@ This repository contains the **Scientific Agentic RAG Framework** - a pluggable,
 
 ### Current Status
 
-**Phase:** MVP Architecture Complete (2026-02-01)
+**Phase:** Phase 3 Complete - Document Formats (2026-02-07)
 
-The MVP establishes a three-layer architecture with:
-- YAML-driven configuration (techniques, pipelines, models)
-- TechniqueRegistry with dynamic loading and filtering
-- PipelineBuilder for composing workflows
-- TechniqueNode for PocketFlow integration
-- OllamaClient for LLM/embedding model access
+**Phase 3 adds:** Multi-format document ingestion with structure preservation
+- PDFChunker: Advanced chunking preserving tables, figures, page numbers, multi-column layouts
+- MarkdownChunker: Section-aware chunking by H1-H3 headings with heading paths
+- TextChunker: Format-aware dispatcher with fallback to plain text
+- **54 tests passing** (14 Phase 1-2 + 15 Phase 3)
 
-**Next phases** will implement actual retrieval, generation, and multi-hop reasoning capabilities.
+**Supported formats:** .txt, .pdf, .md, .markdown with graceful fallback for unknown types
+
+**Next phases:** Advanced retrieval (HyDE, Multi-Query, Hybrid search), Precision (Reranking), GraphRAG
 
 ## Planned Architecture
 
 The project implements an iterative RAG system using:
-- **Python 3.14+** with uv for package management
+- **Python 3.13+** with uv for package management
 - **PocketFlow** for node-based workflow orchestration
 - **Ollama** for local LLM inference
+- **pdfplumber** for PDF structure extraction
 - **YAML** for all configuration
 
 ### Core Design Patterns
@@ -35,12 +37,13 @@ The project implements an iterative RAG system using:
 
 ### Implementation Phases
 
-1. **Phase 1 (MVP - Complete):** Architecture foundation with mocked techniques
-2. **Phase 2:** Naive RAG with dense retrieval
-3. **Phase 3:** Advanced retrieval (HyDE, Multi-Query, Hybrid search)
-4. **Phase 4:** Precision (Reranking, Contextual Compression)
-5. **Phase 5:** GraphRAG with multi-hop reasoning
-6. **Phase 6:** Agentic self-correction with iterative refinement
+1. **Phase 1 (Complete):** Architecture foundation with mocked techniques
+2. **Phase 2 (Complete):** Naive RAG with dense retrieval (NaiveRAGTechnique, Document dataclass)
+3. **Phase 3 (Complete):** Document Formats - PDF/Markdown chunking with structure preservation
+4. **Phase 4 (Next):** Advanced Retrieval (HyDE, Multi-Query, Hybrid search)
+5. **Phase 5:** Precision (Reranking, Contextual Compression)
+6. **Phase 6:** GraphRAG with multi-hop reasoning
+7. **Phase 7:** Generation
 
 ## Key Files
 
@@ -54,15 +57,25 @@ The project implements an iterative RAG system using:
 - `nodes/technique_node.py` - Generic TechniqueNode for PocketFlow
 - `pipeline/builder.py` - PipelineBuilder
 - `ollama/client.py` - OllamaClient
+- `utils/pdf_chunker.py` - PDFChunker with structure preservation (tables, figures, page numbers)
+- `utils/markdown_chunker.py` - MarkdownChunker with section-aware H1-H3 heading paths
+- `utils/text_chunker.py` - Format-aware dispatcher (.txt, .pdf, .md) with fallback
+- `techniques/naive_rag.py` - NaiveRAGTechnique implementation
+- `stores/vector_store.py` - VectorStore with ChromaDB integration
 
 ### Tests
 - `tests/test_registry.py` - Registry tests (7 tests)
 - `tests/test_nodes.py` - Node tests (2 tests)
 - `tests/test_builder.py` - Builder tests (2 tests)
-- `tests/test_ollama.py` - Ollama client tests (2 tests)
+- `tests/test_ollama.py` - Ollama client tests (4 tests)
 - `tests/test_integration.py` - Round-trip integration test (1 test)
+- `tests/test_naive_rag_technique.py` - NaiveRAGTechnique tests (3 tests)
+- `tests/test_vector_store.py` - VectorStore tests (4 tests)
+- `tests/test_pdf_chunker.py` - PDFChunker tests (11 tests)
+- `tests/test_markdown_chunker.py` - MarkdownChunker tests (15 tests)
+- `tests/test_text_chunker.py` - TextChunker format dispatch tests (5 tests)
 
-**Total: 14 tests, all passing**
+**Total: 54 tests, all passing**
 
 ## Commands
 
@@ -123,3 +136,54 @@ Before ending or when context limit approaches:
 - **Dependency injection** - all dependencies injected via YAML config
 - **YAGNI** - only build what's needed for current phase
 - **TDD** - write tests before implementation
+
+## Phase 3 Learnings (Document Formats)
+
+### Design Decisions
+- **pdfplumber over pypdf:** Chose pdfplumber for better table extraction and layout analysis
+- **Heading path metadata:** Tracks full H1-H3 hierarchy (e.g., ["Introduction", "Background", "Methods"])
+- **Figure caption patterns:** Multiple regex variants for "Figure X:", "Fig. X", "FIGURE X" (case-insensitive)
+- **Graceful fallback:** Unknown formats attempt plain text extraction, return empty list on failure
+
+### Architecture Patterns
+- **Dispatch pattern:** TextChunker maps extensions to handler functions via `_handlers` dict
+- **Unified metadata schema:** All chunkers return `list[tuple[str, dict]]` with consistent metadata fields
+- **Rich PDF metadata:** page_number, section_title, figure_captions, table_data
+
+### Testing Insights
+- PDFChunker: 11 tests cover basic extraction, table handling, figure detection, edge cases
+- MarkdownChunker: 15 tests cover heading paths, section splitting, nested headings, empty sections
+- Format dispatch: 5 tests for extension detection, fallback, TXT path
+
+### Future Considerations
+- PDF section detection uses basic heuristics (font size/weight not implemented per YAGNI)
+- Table extraction preserves structure but no semantic understanding yet
+- Heading paths are simple strings - could be enriched with IDs or anchors
+
+## Learnings from Phase 3 (Document Formats)
+
+**PDFChunker with pdfplumber:**
+- Use `pdfplumber.open(path)` to parse PDFs page by page
+- Extract text via `page.extract_text()` for each page
+- Tables: `page.extract_tables()` returns structured data, preserve as metadata
+- Figure captions: Regex patterns like `r"Figure\s+\d+:"` and `r"Fig\.\s*\d+"` work well
+- Split oversized content by paragraphs (double newlines `\\n\\n`)
+- Metadata: `source`, `chunk_index`, `page_number`, `section_title`, `figure_captions`, `table_data`
+
+**MarkdownChunker section-aware parsing:**
+- Parse line by line to detect H1-H3 headings (`# `, `## `, `### `)
+- Maintain heading stack for path tracking (push/pop as nesting changes)
+- Heading path format: `["H1", "H2", "H3"]` - provides context for retrieval
+- Split oversized sections by same paragraph logic as PDF
+- Metadata: `source`, `chunk_index`, `heading_path`, `heading_level`
+
+**TextChunker dispatcher pattern:**
+- Handler dict maps extensions to methods: `{'.pdf': self._chunk_pdf, ...}`
+- Fallback handler attempts plain text for unknown formats
+- Consistent return type: `list[tuple[str, dict]]` for all formats
+
+**Testing strategies:**
+- Use temporary files with `tempfile.NamedTemporaryFile()` for test fixtures
+- Mock PDF/Markdown content with realistic structure (headings, tables, figures)
+- Test both happy paths and error cases (file not found, invalid PDF)
+- Verify metadata completeness per chunk
