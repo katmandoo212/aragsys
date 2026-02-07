@@ -8,17 +8,19 @@ This repository contains the **Scientific Agentic RAG Framework** - a pluggable,
 
 ### Current Status
 
-**Phase:** Phase 3 Complete - Document Formats (2026-02-07)
+**Phase:** Phase 4 Complete - Advanced Retrieval with Neo4j (2026-02-07)
 
-**Phase 3 adds:** Multi-format document ingestion with structure preservation
-- PDFChunker: Advanced chunking preserving tables, figures, page numbers, multi-column layouts
-- MarkdownChunker: Section-aware chunking by H1-H3 headings with heading paths
-- TextChunker: Format-aware dispatcher with fallback to plain text
-- **54 tests passing** (14 Phase 1-2 + 15 Phase 3)
+**Phase 4 adds:**
+- HyDE: Hypothetical Document Embeddings retrieval
+- Multi-Query: Query expansion with LLM
+- Hybrid: Dense + Sparse retrieval with RRF
+- Neo4jStore: Unified storage for documents, vectors, entities
+- EntityExtractor: Basic NER (Person, Organization, Location)
+- **74 tests passing** (54 Phase 1-3 + 20 Phase 4)
 
 **Supported formats:** .txt, .pdf, .md, .markdown with graceful fallback for unknown types
 
-**Next phases:** Advanced retrieval (HyDE, Multi-Query, Hybrid search), Precision (Reranking), GraphRAG
+**Next phases:** Precision (Reranking), GraphRAG with multi-hop reasoning
 
 ## Planned Architecture
 
