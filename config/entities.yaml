@@ -1,0 +1,4 @@
+extraction:
+  model: "en_core_web_sm"
+  entity_types: ["PERSON", "ORG", "GPE"]
+  min_confidence: 0.7

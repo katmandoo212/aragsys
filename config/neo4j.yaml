@@ -1,0 +1,10 @@
+neo4j:
+  uri: "bolt://localhost:7687"
+  user: "neo4j"
+  password: "password"
+  database: "rag"
+vector_index:
+  name: "document_embeddings"
+  dimension: 1024  # Based on bge-m3 model
+fulltext_index:
+  name: "document_fulltext"
