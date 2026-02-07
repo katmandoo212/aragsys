@@ -1,7 +1,7 @@
 """Tests for Neo4jStore."""
 
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock, MagicMock, patch
 from stores.neo4j_store import Neo4jStore
 
 
@@ -10,9 +10,9 @@ class TestNeo4jStoreCreation:
 
     def test_neo4j_store_creates_client(self):
         """Neo4jStore creates a Neo4j driver client."""
-        mock_driver = Mock()
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr("stores.neo4j_store.GraphDatabase", Mock(return_value=mock_driver))
+        with patch("stores.neo4j_store.GraphDatabase") as mock_graph_db:
+            mock_driver = Mock()
+            mock_graph_db.driver.return_value = mock_driver
             config = {
                 "neo4j": {
                     "uri": "bolt://localhost:7687",
@@ -38,12 +38,14 @@ class TestNeo4jStoreAddDocuments:
 
     def test_add_documents_with_embeddings(self):
         """Add documents with embeddings to Neo4j."""
-        mock_driver = Mock()
-        mock_session = Mock()
-        mock_driver.session.return_value.__enter__.return_value = mock_session
+        with patch("stores.neo4j_store.GraphDatabase") as mock_graph_db:
+            mock_driver = Mock()
+            mock_session = MagicMock()
+            mock_session_context = MagicMock()
+            mock_session_context.__enter__.return_value = mock_session
+            mock_driver.session.return_value = mock_session_context
+            mock_graph_db.driver.return_value = mock_driver
 
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr("stores.neo4j_store.GraphDatabase", Mock(return_value=mock_driver))
             config = {
                 "neo4j": {"uri": "bolt://localhost:7687", "user": "neo4j", "password": "password", "database": "rag"},
                 "vector_index": {"name": "document_embeddings", "dimension": 1024},
@@ -59,9 +61,10 @@ class TestNeo4jStoreAddDocuments:
 
     def test_add_empty_documents(self):
         """Empty documents list is handled gracefully."""
-        mock_driver = Mock()
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr("stores.neo4j_store.GraphDatabase", Mock(return_value=mock_driver))
+        with patch("stores.neo4j_store.GraphDatabase") as mock_graph_db:
+            mock_driver = Mock()
+            mock_graph_db.driver.return_value = mock_driver
+
             config = {
                 "neo4j": {"uri": "bolt://localhost:7687", "user": "neo4j", "password": "password", "database": "rag"},
                 "vector_index": {"name": "document_embeddings", "dimension": 1024},
@@ -76,18 +79,21 @@ class TestNeo4jStoreVectorSearch:
 
     def test_vector_search_returns_results(self):
         """Vector search returns document results."""
-        mock_driver = Mock()
-        mock_session = Mock()
-        mock_result = Mock()
-        mock_result.data.return_value = [
-            {"content": "result 1", "metadata": {"source": "file1.txt"}, "score": 0.9},
-            {"content": "result 2", "metadata": {"source": "file1.txt"}, "score": 0.8}
-        ]
-        mock_session.run.return_value = [mock_result]
-        mock_driver.session.return_value.__enter__.return_value = mock_session
+        with patch("stores.neo4j_store.GraphDatabase") as mock_graph_db:
+            mock_driver = Mock()
+            mock_session = MagicMock()
+            mock_session_context = MagicMock()
+            mock_session_context.__enter__.return_value = mock_session
+            mock_driver.session.return_value = mock_session_context
 
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr("stores.neo4j_store.GraphDatabase", Mock(return_value=mock_driver))
+            # Mock result dictionaries that are subscriptable
+            result_dict1 = {"content": "result 1", "metadata": {"source": "file1.txt"}, "score": 0.9}
+            result_dict2 = {"content": "result 2", "metadata": {"source": "file1.txt"}, "score": 0.8}
+
+            # Make the session.run() return an iterable of dictionaries
+            mock_session.run.return_value = [result_dict1, result_dict2]
+            mock_graph_db.driver.return_value = mock_driver
+
             config = {
                 "neo4j": {"uri": "bolt://localhost:7687", "user": "neo4j", "password": "password", "database": "rag"},
                 "vector_index": {"name": "document_embeddings", "dimension": 1024},
@@ -100,9 +106,10 @@ class TestNeo4jStoreVectorSearch:
 
     def test_vector_search_empty_query(self):
         """Empty query vector returns empty list."""
-        mock_driver = Mock()
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr("stores.neo4j_store.GraphDatabase", Mock(return_value=mock_driver))
+        with patch("stores.neo4j_store.GraphDatabase") as mock_graph_db:
+            mock_driver = Mock()
+            mock_graph_db.driver.return_value = mock_driver
+
             config = {
                 "neo4j": {"uri": "bolt://localhost:7687", "user": "neo4j", "password": "password", "database": "rag"},
                 "vector_index": {"name": "document_embeddings", "dimension": 1024},
@@ -118,16 +125,21 @@ class TestNeo4jStoreHybridSearch:
 
     def test_hybrid_search_merges_results(self):
         """Hybrid search merges dense and sparse results with RRF."""
-        mock_driver = Mock()
-        mock_session = Mock()
-        mock_session.run.return_value.data.return_value = [
-            {"content": "result 1", "metadata": {"source": "file1.txt"}},
-            {"content": "result 2", "metadata": {"source": "file1.txt"}}
-        ]
-        mock_driver.session.return_value.__enter__.return_value = mock_session
+        with patch("stores.neo4j_store.GraphDatabase") as mock_graph_db:
+            mock_driver = Mock()
+            mock_session = MagicMock()
+            mock_session_context = MagicMock()
+            mock_session_context.__enter__.return_value = mock_session
+            mock_driver.session.return_value = mock_session_context
 
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr("stores.neo4j_store.GraphDatabase", Mock(return_value=mock_driver))
+            # Mock results as dictionaries
+            result_dict1 = {"content": "result 1", "metadata": {"source": "file1.txt"}, "score": 0.9}
+            result_dict2 = {"content": "result 2", "metadata": {"source": "file1.txt"}, "score": 0.8}
+
+            # Return these results
+            mock_session.run.return_value = [result_dict1, result_dict2]
+            mock_graph_db.driver.return_value = mock_driver
+
             config = {
                 "neo4j": {"uri": "bolt://localhost:7687", "user": "neo4j", "password": "password", "database": "rag"},
                 "vector_index": {"name": "document_embeddings", "dimension": 1024},
@@ -143,12 +155,14 @@ class TestNeo4jStoreEntities:
 
     def test_add_entities_creates_relationships(self):
         """Add entities creates Document->Entity relationships."""
-        mock_driver = Mock()
-        mock_session = Mock()
-        mock_driver.session.return_value.__enter__.return_value = mock_session
+        with patch("stores.neo4j_store.GraphDatabase") as mock_graph_db:
+            mock_driver = Mock()
+            mock_session = MagicMock()
+            mock_session_context = MagicMock()
+            mock_session_context.__enter__.return_value = mock_session
+            mock_driver.session.return_value = mock_session_context
+            mock_graph_db.driver.return_value = mock_driver
 
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr("stores.neo4j_store.GraphDatabase", Mock(return_value=mock_driver))
             config = {
                 "neo4j": {"uri": "bolt://localhost:7687", "user": "neo4j", "password": "password", "database": "rag"},
                 "vector_index": {"name": "document_embeddings", "dimension": 1024},
