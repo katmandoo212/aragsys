@@ -12,11 +12,31 @@ techniques:
         extract_tables: true
         extract_figures: true
         heading_min_size: 16
+
   hyde:
+    class: techniques.hyde.HyDETechnique
     enabled: true
     config:
-      query_expansions: 3
-      embedding_model: "mxbai-embed-large:latest"
-      query_model: "glm-4.7:cloud"
+      embedding_model: "bge-m3:latest"
+      generation_model: "glm-4.7:cloud"
+      top_k: 5
+
+  multi_query:
+    class: techniques.multi_query.MultiQueryTechnique
+    enabled: true
+    config:
+      embedding_model: "bge-m3:latest"
+      generation_model: "glm-4.7:cloud"
+      num_queries: 3
+      top_k: 5
+
+  hybrid:
+    class: techniques.hybrid.HybridTechnique
+    enabled: true
+    config:
+      embedding_model: "bge-m3:latest"
+      top_k: 10
+      rrf_k: 60
+
   disabled_technique:
     enabled: false
