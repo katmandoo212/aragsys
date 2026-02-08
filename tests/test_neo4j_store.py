@@ -194,3 +194,40 @@ class TestNeo4jStoreEntities:
         entities = store.find_entities_in_query("John Smith worked at MIT")
         # Initially returns empty list - will integrate EntityExtractor later
         assert entities == []
+
+
+def test_get_connected_documents():
+    """Get documents connected to an entity."""
+    from unittest.mock import MagicMock
+    from stores.neo4j_store import Neo4jStore
+
+    config = {
+        "neo4j": {"uri": "bolt://localhost:7687", "user": "neo4j", "password": "password", "database": "rag"},
+        "vector_index": {"name": "doc_emb", "dimension": 1024},
+        "fulltext_index": {"name": "doc_ft"}
+    }
+
+    store = Neo4jStore(config)
+    store.driver = MagicMock()
+
+    # Mock session and result
+    mock_session = MagicMock()
+    mock_result = MagicMock()
+    mock_result.data.return_value = [
+        {"content": "John Smith is a researcher.", "metadata": {"source": "doc1"}, "doc_id": "doc1"},
+        {"content": "Smith published on ML.", "metadata": {"source": "doc2"}, "doc_id": "doc2"}
+    ]
+    mock_session.run.return_value = mock_result
+    store.driver.session.return_value.__enter__.return_value = mock_session
+
+    docs = store.get_connected_documents("ent1", max_hops=1)
+    assert len(docs) == 2
+    assert docs[0]["content"] == "John Smith is a researcher."
+    assert docs[0]["doc_id"] == "doc1"
+
+    # Verify Cypher query
+    call_args = mock_session.run.call_args[0][0]
+    assert "MATCH" in call_args
+    assert "Entity" in call_args
+    assert "Document" in call_args
+    assert "CONTAINS" in call_args

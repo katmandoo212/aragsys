@@ -141,3 +141,25 @@ class Neo4jStore:
         # For now, return empty list - will integrate EntityExtractor later
         # This allows us to test the Neo4j query structure first
         return []
+
+    def get_connected_documents(self, entity_id: str, max_hops: int = 1) -> list[dict]:
+        """Get documents connected to an entity within max_hops distance."""
+        if max_hops < 1:
+            return []
+
+        with self.driver.session(database=self.database) as session:
+            # Variable-length path query for documents within max_hops
+            query = f"""
+            MATCH (d:Document)-[:CONTAINS*1..{max_hops}]-(e:Entity {{id: $entity_id}})
+            RETURN d.content as content, d.metadata as metadata, elementId(d) as doc_id
+            LIMIT 50
+            """
+            result = session.run(query, entity_id=entity_id)
+            return [
+                {
+                    "content": record["content"],
+                    "metadata": record["metadata"],
+                    "doc_id": record["doc_id"]
+                }
+                for record in result.data()
+            ]
