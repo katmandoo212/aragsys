@@ -74,7 +74,6 @@ techniques:
     enabled: true
     config:
       max_hops: 2
-      top_k: 5
       min_doc_count: 2
 
   disabled_technique:
