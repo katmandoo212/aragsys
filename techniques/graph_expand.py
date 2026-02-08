@@ -40,7 +40,7 @@ class GraphExpandTechnique:
             related = [r for r in related if r["doc_count"] >= self.min_doc_count]
 
             # Get documents from related entities
-            for rel_entity in related[:self.top_k]:
+            for rel_entity in related:
                 docs = self.neo4j_store.get_connected_documents(
                     rel_entity["id"], max_hops=1
                 )
@@ -57,5 +57,5 @@ class GraphExpandTechnique:
                 metadata=doc["metadata"],
                 score=1.0
             )
-            for doc in all_docs[:self.top_k]
+            for doc in all_docs
         ]
