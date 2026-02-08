@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 import re
 
@@ -7,12 +7,19 @@ if TYPE_CHECKING:
 
 @dataclass
 class CompressTechnique:
+    config: dict
     ollama_client: "OllamaClient"
-    use_llm_refinement: bool
-    min_keyword_matches: int
-    segment_length: int
-    top_k_segments: int
     base_technique: Optional[object] = None
+    use_llm_refinement: bool = field(init=False)
+    min_keyword_matches: int = field(init=False)
+    top_k_segments: int = field(init=False)
+    refinement_model: str = field(init=False)
+
+    def __post_init__(self):
+        self.use_llm_refinement = self.config.get("use_llm_refinement", True)
+        self.min_keyword_matches = self.config.get("min_keyword_matches", 1)
+        self.top_k_segments = self.config.get("top_k_segments", 3)
+        self.refinement_model = self.config.get("refinement_model", "glm-4.7:cloud")
 
     def retrieve(self, query: str) -> list[dict]:
         """Retrieve and compress documents to relevant segments."""
@@ -75,4 +82,4 @@ class CompressTechnique:
             f"Segments:\n{segments_text}\n"
             f"Relevant content:"
         )
-        return self.ollama_client.generate(prompt, "glm-4.7:cloud")
+        return self.ollama_client.generate(prompt, self.refinement_model)

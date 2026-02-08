@@ -22,11 +22,8 @@ def mock_base_technique():
 
 def test_keyword_extraction_filters_segments(mock_ollama_client, mock_base_technique):
     compressor = CompressTechnique(
+        config={"use_llm_refinement": False, "min_keyword_matches": 1, "top_k_segments": 3, "refinement_model": "glm-4.7:cloud"},
         ollama_client=mock_ollama_client,
-        use_llm_refinement=False,
-        min_keyword_matches=1,
-        segment_length=50,
-        top_k_segments=3,
         base_technique=mock_base_technique,
     )
 
@@ -41,11 +38,8 @@ def test_keyword_extraction_filters_segments(mock_ollama_client, mock_base_techn
 def test_llm_refinement_compresses_content(mock_ollama_client, mock_base_technique):
     mock_ollama_client.generate.return_value = "Cats are furry animals."
     compressor = CompressTechnique(
+        config={"use_llm_refinement": True, "min_keyword_matches": 1, "top_k_segments": 3, "refinement_model": "glm-4.7:cloud"},
         ollama_client=mock_ollama_client,
-        use_llm_refinement=True,
-        min_keyword_matches=1,
-        segment_length=50,
-        top_k_segments=3,
         base_technique=mock_base_technique,
     )
 
@@ -58,11 +52,8 @@ def test_llm_refinement_compresses_content(mock_ollama_client, mock_base_techniq
 def test_fallback_without_llm_refinement(mock_base_technique):
     client = MagicMock()
     compressor = CompressTechnique(
+        config={"use_llm_refinement": False, "min_keyword_matches": 1, "top_k_segments": 3, "refinement_model": "glm-4.7:cloud"},
         ollama_client=client,
-        use_llm_refinement=False,
-        min_keyword_matches=1,
-        segment_length=50,
-        top_k_segments=3,
         base_technique=mock_base_technique,
     )
 
@@ -76,11 +67,8 @@ def test_document_with_no_matches(mock_ollama_client, mock_base_technique):
         {"content": "This is about nothing relevant.", "metadata": {"id": 1}, "relevance_score": 0.5}
     ]
     compressor = CompressTechnique(
+        config={"use_llm_refinement": False, "min_keyword_matches": 1, "top_k_segments": 3, "refinement_model": "glm-4.7:cloud"},
         ollama_client=mock_ollama_client,
-        use_llm_refinement=False,
-        min_keyword_matches=1,
-        segment_length=50,
-        top_k_segments=3,
         base_technique=mock_base_technique,
     )
 
@@ -91,16 +79,13 @@ def test_document_with_no_matches(mock_ollama_client, mock_base_technique):
 
 def test_configuration_options(mock_ollama_client, mock_base_technique):
     compressor = CompressTechnique(
+        config={"use_llm_refinement": True, "min_keyword_matches": 2, "top_k_segments": 1, "refinement_model": "glm-4.7:cloud"},
         ollama_client=mock_ollama_client,
-        use_llm_refinement=True,
-        min_keyword_matches=2,
-        segment_length=20,
-        top_k_segments=1,
         base_technique=mock_base_technique,
     )
 
     # Verify config is stored
     assert compressor.min_keyword_matches == 2
-    assert compressor.segment_length == 20
     assert compressor.top_k_segments == 1
     assert compressor.use_llm_refinement is True
+    assert compressor.refinement_model == "glm-4.7:cloud"

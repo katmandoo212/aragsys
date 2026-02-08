@@ -19,10 +19,8 @@ def mock_base_technique():
 
 def test_rerank_reorders_results(mock_ollama_client, mock_base_technique):
     reranker = RerankTechnique(
+        config={"scoring_model": "test-model", "top_k": 5, "score_threshold": 0.0},
         ollama_client=mock_ollama_client,
-        scoring_model="test-model",
-        top_k=5,
-        score_threshold=0.0,
         base_technique=mock_base_technique,
     )
 
@@ -37,10 +35,8 @@ def test_rerank_reorders_results(mock_ollama_client, mock_base_technique):
 def test_rerank_filters_by_score_threshold(mock_ollama_client, mock_base_technique):
     mock_ollama_client.generate.side_effect = ["0.2", "0.8"]
     reranker = RerankTechnique(
+        config={"scoring_model": "test-model", "top_k": 5, "score_threshold": 0.5},
         ollama_client=mock_ollama_client,
-        scoring_model="test-model",
-        top_k=5,
-        score_threshold=0.5,
         base_technique=mock_base_technique,
     )
 
@@ -54,10 +50,8 @@ def test_rerank_filters_by_score_threshold(mock_ollama_client, mock_base_techniq
 def test_rerank_handles_empty_results(mock_ollama_client, mock_base_technique):
     mock_base_technique.retrieve.return_value = []
     reranker = RerankTechnique(
+        config={"scoring_model": "test-model", "top_k": 5, "score_threshold": 0.5},
         ollama_client=mock_ollama_client,
-        scoring_model="test-model",
-        top_k=5,
-        score_threshold=0.5,
         base_technique=mock_base_technique,
     )
 
@@ -78,10 +72,8 @@ def test_rerank_keeps_top_k(mock_ollama_client):
     mock_ollama_client.generate.side_effect = ["0.9", "0.3", "0.8", "0.2", "0.7"]
 
     reranker = RerankTechnique(
+        config={"scoring_model": "test-model", "top_k": 3, "score_threshold": 0.0},
         ollama_client=mock_ollama_client,
-        scoring_model="test-model",
-        top_k=3,
-        score_threshold=0.0,
         base_technique=base_technique,
     )
 

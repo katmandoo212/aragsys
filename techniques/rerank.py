@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
@@ -6,11 +6,17 @@ if TYPE_CHECKING:
 
 @dataclass
 class RerankTechnique:
+    config: dict
     ollama_client: "OllamaClient"
-    scoring_model: str
-    top_k: int
-    score_threshold: float
     base_technique: Optional[object] = None
+    scoring_model: str = field(init=False)
+    top_k: int = field(init=False)
+    score_threshold: float = field(init=False)
+
+    def __post_init__(self):
+        self.scoring_model = self.config.get("scoring_model", "bge-reranker-v2:latest")
+        self.top_k = self.config.get("top_k", 5)
+        self.score_threshold = self.config.get("score_threshold", 0.5)
 
     def retrieve(self, query: str) -> list[dict]:
         """Retrieve and rerank results using cross-encoder scoring."""

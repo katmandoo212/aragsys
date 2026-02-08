@@ -53,7 +53,7 @@ techniques:
       use_llm_refinement: true
       top_k_segments: 3
       min_keyword_matches: 1
-      segment_length: 200
+      refinement_model: "glm-4.7:cloud"
 
   disabled_technique:
     enabled: false
