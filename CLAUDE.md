@@ -8,19 +8,18 @@ This repository contains the **Scientific Agentic RAG Framework** - a pluggable,
 
 ### Current Status
 
-**Phase:** Phase 4 Complete - Advanced Retrieval with Neo4j (2026-02-07)
+**Phase:** Phase 6 Complete - GraphRAG (2026-02-07)
 
-**Phase 4 adds:**
-- HyDE: Hypothetical Document Embeddings retrieval
-- Multi-Query: Query expansion with LLM
-- Hybrid: Dense + Sparse retrieval with RRF
-- Neo4jStore: Unified storage for documents, vectors, entities
-- EntityExtractor: Basic NER (Person, Organization, Location)
-- **74 tests passing** (54 Phase 1-3 + 20 Phase 4)
+**Phase 6 adds:**
+- GraphEntityTechnique: Entity-based document retrieval
+- GraphMultiHopTechnique: Multi-hop path reasoning
+- GraphExpandTechnique: Entity relationship expansion
+- Neo4jStore graph query methods: find_entities_in_query, get_connected_documents, get_entity_relationships, multi_hop_query
+- **~100 tests passing** (83 Phase 1-5 + ~17 Phase 6)
 
 **Supported formats:** .txt, .pdf, .md, .markdown with graceful fallback for unknown types
 
-**Next phases:** Precision (Reranking), GraphRAG with multi-hop reasoning
+**Next phases:** Generation (LLM response generation)
 
 ## Planned Architecture
 
@@ -42,9 +41,9 @@ The project implements an iterative RAG system using:
 1. **Phase 1 (Complete):** Architecture foundation with mocked techniques
 2. **Phase 2 (Complete):** Naive RAG with dense retrieval (NaiveRAGTechnique, Document dataclass)
 3. **Phase 3 (Complete):** Document Formats - PDF/Markdown chunking with structure preservation
-4. **Phase 4 (Next):** Advanced Retrieval (HyDE, Multi-Query, Hybrid search)
-5. **Phase 5:** Precision (Reranking, Contextual Compression)
-6. **Phase 6:** GraphRAG with multi-hop reasoning
+4. **Phase 4 (Complete):** Advanced Retrieval (HyDE, Multi-Query, Hybrid search)
+5. **Phase 5 (Complete):** Precision (Reranking, Contextual Compression)
+6. **Phase 6 (Complete):** GraphRAG with multi-hop reasoning
 7. **Phase 7:** Generation
 
 ## Key Files
@@ -76,8 +75,13 @@ The project implements an iterative RAG system using:
 - `tests/test_pdf_chunker.py` - PDFChunker tests (11 tests)
 - `tests/test_markdown_chunker.py` - MarkdownChunker tests (15 tests)
 - `tests/test_text_chunker.py` - TextChunker format dispatch tests (5 tests)
+- `tests/test_neo4j_store.py` - Neo4jStore tests (15 tests)
+- `tests/test_entity_extractor.py` - EntityExtractor tests (4 tests)
+- `tests/test_graph_entity_technique.py` - GraphEntityTechnique tests (3 tests)
+- `tests/test_graph_multi_hop_technique.py` - GraphMultiHopTechnique tests (3 tests)
+- `tests/test_graph_expand_technique.py` - GraphExpandTechnique tests (3 tests)
 
-**Total: 54 tests, all passing**
+**Total: ~100 tests, all passing**
 
 ## Commands
 
