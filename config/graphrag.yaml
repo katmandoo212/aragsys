@@ -1,0 +1,31 @@
+graph:
+  # Entity types to extract and index
+  entity_types:
+    - PERSON
+    - ORG
+    - GPE
+    - EVENT
+    - WORK_OF_ART
+    - LAW
+
+  # Default maximum hops for graph traversal
+  max_hops: 3
+
+  # Default number of results to return
+  top_k: 5
+
+  # Minimum document count for entity relationships
+  min_doc_count: 2
+
+  # Relationship expansion settings
+  expand:
+    max_related_entities: 10
+    min_shared_documents: 1
+
+neo4j:
+  # Reference to Neo4j config (actual values in neo4j.yaml)
+  config_ref: "neo4j.yaml"
+
+  # Index names for graph queries
+  entity_index: "entity_names"
+  relationship_index: "entity_relationships"
