@@ -231,3 +231,41 @@ def test_get_connected_documents():
     assert "Entity" in call_args
     assert "Document" in call_args
     assert "CONTAINS" in call_args
+
+
+def test_get_entity_relationships():
+    """Get entities related to a given entity."""
+    from unittest.mock import MagicMock
+    from stores.neo4j_store import Neo4jStore
+
+    config = {
+        "neo4j": {"uri": "bolt://localhost:7687", "user": "neo4j", "password": "password", "database": "rag"},
+        "vector_index": {"name": "doc_emb", "dimension": 1024},
+        "fulltext_index": {"name": "doc_ft"}
+    }
+
+    store = Neo4jStore(config)
+    store.driver = MagicMock()
+
+    # Mock session and result
+    mock_session = MagicMock()
+    mock_result = MagicMock()
+    mock_result.data.return_value = [
+        {"name": "MIT", "type": "ORG", "id": "ent2", "doc_count": 2},
+        {"name": "Stanford", "type": "ORG", "id": "ent3", "doc_count": 1}
+    ]
+    mock_session.run.return_value = mock_result
+    store.driver.session.return_value.__enter__.return_value = mock_session
+
+    relations = store.get_entity_relationships("ent1", max_hops=2)
+    assert len(relations) == 2
+    assert relations[0]["name"] == "MIT"
+    assert relations[0]["type"] == "ORG"
+    assert relations[0]["doc_count"] == 2
+
+    # Verify Cypher query
+    call_args = mock_session.run.call_args[0][0]
+    assert "MATCH" in call_args
+    assert "Entity" in call_args
+    assert "Document" in call_args
+    assert "length(path)" in call_args

@@ -162,3 +162,28 @@ class Neo4jStore:
                 }
                 for record in result.data()
             ]
+
+    def get_entity_relationships(self, entity_id: str, max_hops: int = 2) -> list[dict]:
+        """Get entities connected via shared documents within max_hops distance."""
+        if max_hops < 1:
+            return []
+
+        with self.driver.session(database=self.database) as session:
+            # Find entities connected through shared documents
+            query = f"""
+            MATCH path = (e1:Entity {{id: $entity_id}})-[*1..{max_hops}]-(d:Document)-[:CONTAINS]-(e2:Entity)
+            WHERE e1 <> e2 AND length(path) <= {max_hops}
+            RETURN e2.name as name, e2.type as type, e2.id as id, count(DISTINCT d) as doc_count
+            ORDER BY doc_count DESC
+            LIMIT 20
+            """
+            result = session.run(query, entity_id=entity_id)
+            return [
+                {
+                    "name": record["name"],
+                    "type": record["type"],
+                    "id": record["id"],
+                    "doc_count": record["doc_count"]
+                }
+                for record in result.data()
+            ]
