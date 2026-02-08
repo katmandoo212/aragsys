@@ -38,5 +38,22 @@ techniques:
       top_k: 10
       rrf_k: 60
 
+  rerank:
+    class: techniques.rerank.RerankTechnique
+    enabled: true
+    config:
+      scoring_model: "bge-reranker-v2:latest"
+      top_k: 5
+      score_threshold: 0.5
+
+  compress:
+    class: techniques.compress.CompressTechnique
+    enabled: true
+    config:
+      use_llm_refinement: true
+      top_k_segments: 3
+      min_keyword_matches: 1
+      refinement_model: "glm-4.7:cloud"
+
   disabled_technique:
     enabled: false
