@@ -9,6 +9,9 @@ from techniques.compress import CompressTechnique
 from techniques.graph_entity import GraphEntityTechnique
 from techniques.graph_multihop import GraphMultiHopTechnique
 from techniques.graph_expand import GraphExpandTechnique
+from techniques.generate_simple import SimpleGenerationTechnique
+from techniques.generate_context import ContextGenerationTechnique
+from techniques.generate_cot import ChainOfThoughtGenerationTechnique
 
 __all__ = [
     "NaiveRAGTechnique",
@@ -20,4 +23,7 @@ __all__ = [
     "GraphEntityTechnique",
     "GraphMultiHopTechnique",
     "GraphExpandTechnique",
+    "SimpleGenerationTechnique",
+    "ContextGenerationTechnique",
+    "ChainOfThoughtGenerationTechnique",
 ]

@@ -108,3 +108,11 @@ def test_registry_imports_graph_techniques():
     assert GraphEntityTechnique is not None
     assert GraphMultiHopTechnique is not None
     assert GraphExpandTechnique is not None
+
+
+def test_registry_imports_generation_techniques():
+    """Verify generation techniques are importable."""
+    from techniques import SimpleGenerationTechnique, ContextGenerationTechnique, ChainOfThoughtGenerationTechnique
+    assert SimpleGenerationTechnique is not None
+    assert ContextGenerationTechnique is not None
+    assert ChainOfThoughtGenerationTechnique is not None
