@@ -175,7 +175,6 @@ class Neo4jStore:
             WHERE e1 <> e2 AND length(path) <= {max_hops}
             RETURN e2.name as name, e2.type as type, e2.id as id, count(DISTINCT d) as doc_count
             ORDER BY doc_count DESC
-            LIMIT 20
             """
             result = session.run(query, entity_id=entity_id)
             return [
