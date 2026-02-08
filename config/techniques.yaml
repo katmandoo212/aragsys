@@ -55,5 +55,27 @@ techniques:
       min_keyword_matches: 1
       refinement_model: "glm-4.7:cloud"
 
+  graph_entity:
+    class: techniques.graph_entity.GraphEntityTechnique
+    enabled: true
+    config:
+      max_hops: 2
+      top_k: 5
+
+  graph_multihop:
+    class: techniques.graph_multihop.GraphMultiHopTechnique
+    enabled: true
+    config:
+      max_hops: 3
+      top_k: 5
+
+  graph_expand:
+    class: techniques.graph_expand.GraphExpandTechnique
+    enabled: true
+    config:
+      max_hops: 2
+      top_k: 5
+      min_doc_count: 2
+
   disabled_technique:
     enabled: false
