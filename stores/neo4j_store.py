@@ -188,21 +188,25 @@ class Neo4jStore:
             ]
 
     def multi_hop_query(self, entity_ids: list[str], max_hops: int = 3) -> list[dict]:
-        """Find documents and paths connecting multiple entities."""
+        """Find documents and paths connecting multiple entities.
+
+        The path_length represents the distance from e1 to e2 through the matched document d,
+        ensuring semantic correctness for multi-hop reasoning.
+        """
         if len(entity_ids) < 2 or max_hops < 1:
             return []
 
         with self.driver.session(database=self.database) as session:
             # Find documents on paths connecting any pair of entities
-            entity_ids_str = ", ".join([f"'{eid}'" for eid in entity_ids])
+            # Use parameterized query to prevent Cypher injection
             query = f"""
             MATCH (e1:Entity)-[:CONTAINS*1..{max_hops}]-(d:Document)-[:CONTAINS*1..{max_hops}]-(e2:Entity)
-            WHERE e1.id IN [{entity_ids_str}] AND e2.id IN [{entity_ids_str}] AND e1.id < e2.id
+            WHERE e1.id IN $entity_ids AND e2.id IN $entity_ids AND e1.id < e2.id
             RETURN elementId(d) as doc_id, d.content as content,
-                   length(shortestPath((e1)-[*]-(e2))) as path_length
+                   length(shortestPath((e1)-[:CONTAINS*]-(d)-[:CONTAINS*]-(e2))) as path_length
             ORDER BY path_length ASC
             """
-            result = session.run(query)
+            result = session.run(query, entity_ids=entity_ids)
             return [
                 {
                     "doc_id": record["doc_id"],
