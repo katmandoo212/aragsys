@@ -152,7 +152,6 @@ class Neo4jStore:
             query = f"""
             MATCH (d:Document)-[:CONTAINS*1..{max_hops}]-(e:Entity {{id: $entity_id}})
             RETURN d.content as content, d.metadata as metadata, elementId(d) as doc_id
-            LIMIT 50
             """
             result = session.run(query, entity_id=entity_id)
             return [
