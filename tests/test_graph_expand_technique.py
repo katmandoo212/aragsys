@@ -10,17 +10,16 @@ class TestGraphExpandTechnique:
 
     def test_initialization(self):
         """GraphExpandTechnique initializes with config."""
-        config = {"max_hops": 2, "top_k": 5, "min_doc_count": 1}
+        config = {"max_hops": 2, "min_doc_count": 1}
         technique = GraphExpandTechnique(config, neo4j_store=MagicMock())
         assert technique.max_hops == 2
-        assert technique.top_k == 5
         assert technique.min_doc_count == 1
 
     def test_expand_queries_entity_relationships(self):
         """Expand technique queries related entities."""
         from utils.document import Document
 
-        config = {"max_hops": 2, "top_k": 5, "min_doc_count": 1}
+        config = {"max_hops": 2, "min_doc_count": 1}
 
         mock_store = MagicMock()
         mock_store.find_entities_in_query.return_value = [

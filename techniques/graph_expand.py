@@ -14,7 +14,6 @@ class GraphExpandTechnique:
     def __init__(self, config: dict, neo4j_store=None):
         self.config = config
         self.max_hops = config.get("max_hops", 2)
-        self.top_k = config.get("top_k", 5)
         self.min_doc_count = config.get("min_doc_count", 1)
         self.neo4j_store = neo4j_store
 
