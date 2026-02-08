@@ -1,0 +1,9 @@
+precision:
+  keyword_extraction:
+    stop_words: ["the", "a", "an", "is", "are", "was", "were"]
+    segment_length: 200
+    min_keyword_matches: 1
+  llm_refinement:
+    enabled: true
+    model: "glm-4.7:cloud"
+    max_segments: 3
