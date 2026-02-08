@@ -1,11 +1,12 @@
 from dataclasses import dataclass
+from typing import Optional
 import yaml
 import httpx
 
 @dataclass
 class OllamaClient:
     base_url: str
-    generation_model: str = None
+    generation_model: Optional[str] = None
 
     @classmethod
     def from_config(cls, config_path: str) -> "OllamaClient":

@@ -33,6 +33,9 @@ ollama:
 
 query_models:
   default: "glm-4.7:cloud"
+
+generation_models:
+  default: "llama3.2"
 """
 
     # Write config files
