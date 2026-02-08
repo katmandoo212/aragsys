@@ -13,7 +13,7 @@ class OllamaClient:
             config = yaml.safe_load(f)
         return cls(
             base_url=config["ollama"]["base_url"],
-            generation_model=config.get("generation_models", {}).get("default")
+            generation_model=config["generation_models"]["default"]
         )
 
     def embed(self, text: str, model: str) -> list[float]:

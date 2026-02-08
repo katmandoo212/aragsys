@@ -13,6 +13,8 @@ def test_ollama_client_from_config(tmp_path):
     yaml_content = """
 ollama:
   base_url: "http://custom-url:11434"
+generation_models:
+  default: "llama3.2:latest"
 """
     config_file = tmp_path / "models.yaml"
     config_file.write_text(yaml_content)
@@ -25,7 +27,7 @@ ollama:
 def test_ollama_embed_returns_vector(tmp_path):
     # Create mock config
     config_file = tmp_path / "models.yaml"
-    config_file.write_text('ollama:\n  base_url: "http://localhost:11434"')
+    config_file.write_text('ollama:\n  base_url: "http://localhost:11434"\ngeneration_models:\n  default: "llama3.2:latest"')
 
     client = OllamaClient.from_config(str(config_file))
 
@@ -44,7 +46,7 @@ def test_ollama_embed_returns_vector(tmp_path):
 
 def test_ollama_embed_connection_error(tmp_path):
     config_file = tmp_path / "models.yaml"
-    config_file.write_text('ollama:\n  base_url: "http://localhost:11434"')
+    config_file.write_text('ollama:\n  base_url: "http://localhost:11434"\ngeneration_models:\n  default: "llama3.2:latest"')
 
     client = OllamaClient.from_config(str(config_file))
 
