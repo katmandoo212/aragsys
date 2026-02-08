@@ -14,7 +14,6 @@ class ContextGenerationTechnique:
     """Generate answers with citation formatting."""
 
     def __init__(self, config: dict, ollama_client=None):
-        self.config = config
         self.model = config.get("model", "glm-4.7:cloud")
         self.max_context_docs = config.get("max_context_docs", 5)
         self.ollama_client = ollama_client
@@ -46,9 +45,6 @@ Answer:"""
 
     def _build_context_with_citations(self, documents: list["Document"]) -> tuple[str, list[str]]:
         """Build context with citation markers and return citations list."""
-        if not documents:
-            return "No context available.", []
-
         context_parts = []
         citations = []
 
