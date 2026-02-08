@@ -135,3 +135,9 @@ class Neo4jStore:
             }
             for score, content in sorted_results
         ]
+
+    def find_entities_in_query(self, query: str) -> list[dict]:
+        """Find entities mentioned in query."""
+        # For now, return empty list - will integrate EntityExtractor later
+        # This allows us to test the Neo4j query structure first
+        return []

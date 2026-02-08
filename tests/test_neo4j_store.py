@@ -175,3 +175,22 @@ class TestNeo4jStoreEntities:
             ]
             store.add_entities("doc_1", entities)
             mock_session.run.assert_called()
+
+    def test_find_entities_in_query(self):
+        """Extract entity mentions from query and find matching nodes."""
+        from unittest.mock import MagicMock
+        from stores.neo4j_store import Neo4jStore
+
+        config = {
+            "neo4j": {"uri": "bolt://localhost:7687", "user": "neo4j", "password": "password", "database": "rag"},
+            "vector_index": {"name": "doc_emb", "dimension": 1024},
+            "fulltext_index": {"name": "doc_ft"}
+        }
+
+        store = Neo4jStore(config)
+        store.driver = MagicMock()
+
+        # Test entity finding (for now, returns empty until EntityExtractor integrated)
+        entities = store.find_entities_in_query("John Smith worked at MIT")
+        # Initially returns empty list - will integrate EntityExtractor later
+        assert entities == []
