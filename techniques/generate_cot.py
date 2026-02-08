@@ -52,11 +52,10 @@ Reasoning:"""
             return "No context available."
 
         context_parts = []
-        for i, doc in enumerate(documents, 1):
-            source = doc.metadata.get("source", f"doc_{i}")
-            context_parts.append(f"[{i}] {source}: {doc.content}")
+        for doc in documents:
+            context_parts.append(f"- {doc.content}")
 
-        return "\n\n".join(context_parts)
+        return "\n".join(context_parts)
 
     def _extract_answer(self, response: str) -> str:
         """Extract final answer from CoT response."""
