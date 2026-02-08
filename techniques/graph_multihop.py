@@ -28,12 +28,10 @@ class GraphMultiHopTechnique:
             return []
 
         # Extract entity IDs
-        entity_ids = [e["id"] for e in entities[:self.top_k]]
+        entity_ids = [e["id"] for e in entities]
 
         # Find multi-hop paths
         paths = self.neo4j_store.multi_hop_query(entity_ids, max_hops=self.max_hops)
-        if not paths:
-            return []
 
         # Convert to Document objects with path metadata
         from utils.document import Document
@@ -43,5 +41,5 @@ class GraphMultiHopTechnique:
                 metadata={"path_length": path["path_length"], "doc_id": path["doc_id"]},
                 score=1.0 / (1 + path["path_length"])  # Shorter paths get higher score
             )
-            for path in paths[:self.top_k]
+            for path in paths
         ]
