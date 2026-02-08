@@ -13,5 +13,12 @@ embedding_models:
     - "bge-m3:latest"
     - "mxbai-embed-large:latest"
 
+generation_models:
+  default: "glm-4.7:cloud"
+  available:
+    - "glm-4.7:cloud"
+    - "llama3:8b"
+    - "llama3:70b"
+
 vector_store:
   persist_directory: "./data/chroma"

@@ -53,3 +53,12 @@ def test_ollama_embed_connection_error(tmp_path):
 
         with pytest.raises(httpx.ConnectError):
             client.embed("test", "bge-m3:latest")
+
+
+def test_ollama_client_has_generation_models():
+    """OllamaClient config includes generation models."""
+    from ollama.client import OllamaClient
+
+    client = OllamaClient.from_config("config/models.yaml")
+    assert hasattr(client, 'generation_model')
+    assert client.generation_model is not None

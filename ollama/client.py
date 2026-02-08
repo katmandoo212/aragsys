@@ -5,12 +5,16 @@ import httpx
 @dataclass
 class OllamaClient:
     base_url: str
+    generation_model: str = None
 
     @classmethod
     def from_config(cls, config_path: str) -> "OllamaClient":
         with open(config_path) as f:
             config = yaml.safe_load(f)
-        return cls(base_url=config["ollama"]["base_url"])
+        return cls(
+            base_url=config["ollama"]["base_url"],
+            generation_model=config.get("generation_models", {}).get("default")
+        )
 
     def embed(self, text: str, model: str) -> list[float]:
         """Generate embeddings for the given text using the specified model."""
