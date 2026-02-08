@@ -100,3 +100,11 @@ def test_technique_registry_get_missing_raises_custom_exception(tmp_path):
 
     with pytest.raises(TechniqueNotFoundError):
         registry.get_technique("does_not_exist")
+
+
+def test_registry_imports_graph_techniques():
+    """Verify graph techniques are importable."""
+    from techniques import GraphEntityTechnique, GraphMultiHopTechnique, GraphExpandTechnique
+    assert GraphEntityTechnique is not None
+    assert GraphMultiHopTechnique is not None
+    assert GraphExpandTechnique is not None
