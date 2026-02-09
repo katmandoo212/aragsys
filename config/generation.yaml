@@ -1,0 +1,53 @@
+generation:
+  # Default model for generation
+  default_model: "glm-4.7:cloud"
+
+  # Maximum number of documents to include as context
+  max_context_docs: 5
+
+  # Generation settings
+  temperature: 0.7
+  max_tokens: 512
+
+  # Prompt templates
+  prompts:
+    simple: |
+      Query: {query}
+
+      Context:
+      {context}
+
+      Answer:
+
+    context: |
+      Query: {query}
+
+      Use the following context to answer. Cite your sources using [n] notation.
+
+      Context:
+      {context}
+
+      Answer:
+
+    cot: |
+      Query: {query}
+
+      Context:
+      {context}
+
+      Think step by step to answer the query. Show your reasoning process.
+
+      Reasoning:
+
+models:
+  # Available generation models
+  available:
+    - name: "glm-4.7:cloud"
+      max_context: 10000
+      supports_citations: true
+    - name: "llama3:8b"
+      max_context: 8000
+      supports_citations: false
+    - name: "llama3:70b"
+      max_context: 12000
+      supports_citations: true
