@@ -2,32 +2,39 @@
 
 A pluggable, extensible Retrieval-Augmented Generation framework for multi-hop reasoning over academic and clinical literature.
 
+[![Tests](https://img.shields.io/badge/tests-120%20passing-brightgreen)](tests/)
+
 ## Overview
 
-aragsys is designed as a three-layer architecture that enables flexible composition of RAG techniques through YAML-driven configuration. The framework separates concerns into:
+aragsys is a complete RAG framework designed for scientific literature analysis. It provides:
 
-1. **Configuration Layer** - YAML files define available techniques and pipeline compositions
-2. **Registry Layer** - Loads YAML configs and provides technique metadata
-3. **Execution Layer** - Composes pipelines and executes via PocketFlow
+- **Document Ingestion** - Process PDF, Markdown, and TXT files with structure preservation
+- **Advanced Retrieval** - Multiple strategies (Naive, HyDE, Multi-Query, Hybrid search)
+- **Precision Enhancement** - Reranking and contextual compression
+- **GraphRAG** - Multi-hop entity reasoning using Neo4j
+- **LLM Generation** - Multiple strategies (Simple, Context-aware, Chain-of-Thought)
+
+The framework uses YAML-driven configuration for flexible composition of RAG techniques.
 
 ## Current Status
 
-**Phase:** MVP Architecture Complete
+**Phase:** Phase 7 Complete - Generation (2026-02-07)
 
-The MVP establishes the foundational architecture with:
-- YAML-driven technique and pipeline configuration
-- Registry pattern for dynamic technique discovery
-- Builder pattern for pipeline composition
-- Ollama integration for LLM and embedding models
-- Complete test coverage (14/14 tests passing)
+Phase 7 adds:
+- Answer dataclass for generation responses (content, metadata, citations)
+- OllamaClient generation model configuration
+- SimpleGenerationTechnique: Basic LLM generation with document context
+- ContextGenerationTechnique: Citation-aware generation with source markers
+- ChainOfThoughtGenerationTechnique: Step-by-step reasoning with answer extraction
 
-**Next phases** will implement actual retrieval, generation, and multi-hop reasoning capabilities.
+**Total: 120 tests passing** (99 Phase 1-6 + 21 Phase 7)
 
 ## Requirements
 
-- Python 3.14+
+- Python 3.13+
 - uv (for package management)
 - Ollama (for local LLM inference)
+- Neo4j (optional, for GraphRAG features)
 
 ## Installation
 
@@ -56,8 +63,10 @@ The framework uses Ollama for local LLM inference. Install Ollama from [ollama.c
 Pull required models:
 
 ```bash
-# Query model (default)
+# Generation models (default)
 ollama pull glm-4.7:cloud
+ollama pull llama3:8b
+ollama pull llama3:70b
 
 # Embedding models
 ollama pull nomic-embed-text-v2-moe:latest
@@ -67,43 +76,23 @@ ollama pull bge-m3:latest
 ollama pull mxbai-embed-large:latest
 ```
 
+### Neo4j Setup (Optional)
+
+For GraphRAG features, install Neo4j from [neo4j.com](https://neo4j.com).
+
+Configure connection in `config/neo4j.yaml`:
+
+```yaml
+neo4j:
+  uri: "bolt://localhost:7687"
+  user: "neo4j"
+  password: "your_password"
+  database: "rag"
+```
+
 ## Configuration
 
-### techniques.yaml
-
-Define available RAG techniques and their configurations:
-
-```yaml
-techniques:
-  naive_rag:
-    enabled: true
-    config:
-      chunk_size: 500
-      top_k: 5
-      embedding_model: "bge-m3:latest"
-  hyde:
-    enabled: true
-    config:
-      query_expansions: 3
-      embedding_model: "mxbai-embed-large:latest"
-      query_model: "glm-4.7:cloud"
-```
-
-### pipelines.yaml
-
-Define pipeline compositions:
-
-```yaml
-default_query_model: "glm-4.7:cloud"
-
-pipelines:
-  naive_flow:
-    query_model: "glm-4.7:cloud"
-    techniques: [naive_rag, generation]
-  advanced_flow:
-    query_model: "glm-4.7:cloud"
-    techniques: [hyde, naive_rag, rerank, generation]
-```
+The framework uses YAML files for all configuration.
 
 ### models.yaml
 
@@ -113,9 +102,11 @@ Configure Ollama connection and available models:
 ollama:
   base_url: "http://localhost:11434"
 
+# Query model for generation
 query_models:
   default: "glm-4.7:cloud"
 
+# Embedding models for vector search
 embedding_models:
   default: "bge-m3:latest"
   available:
@@ -124,6 +115,213 @@ embedding_models:
     - "granite-embedding:278m"
     - "bge-m3:latest"
     - "mxbai-embed-large:latest"
+
+# Generation models for LLM responses
+generation_models:
+  default: "glm-4.7:cloud"
+  available:
+    - "glm-4.7:cloud"
+    - "llama3:8b"
+    - "llama3:70b"
+
+# Vector store settings
+vector_store:
+  persist_directory: "./data/chroma"
+  collection_name: "documents"
+  dimension: 1024
+```
+
+### techniques.yaml
+
+Define available RAG techniques and their configurations:
+
+```yaml
+techniques:
+  # Basic dense retrieval
+  naive_rag:
+    class: techniques.naive_rag.NaiveRAGTechnique
+    enabled: true
+    config:
+      chunk_size: 500
+      top_k: 5
+      embedding_model: "bge-m3:latest"
+      collection_name: "documents"
+
+  # Hypothetical Document Embeddings
+  hyde:
+    class: techniques.hyde.HyDETechnique
+    enabled: true
+    config:
+      embedding_model: "bge-m3:latest"
+      generation_model: "glm-4.7:cloud"
+      top_k: 5
+
+  # Multiple query variations
+  multi_query:
+    class: techniques.multi_query.MultiQueryTechnique
+    enabled: true
+    config:
+      embedding_model: "bge-m3:latest"
+      num_queries: 3
+
+  # Hybrid search (vector + full-text)
+  hybrid:
+    class: techniques.hybrid.HybridTechnique
+    enabled: true
+    config:
+      embedding_model: "bge-m3:latest"
+      top_k: 5
+
+  # Reranking with cross-encoder
+  rerank:
+    class: techniques.rerank.RerankTechnique
+    enabled: true
+    config:
+      model: "bge-reranker-large:latest"
+      score_threshold: 0.5
+
+  # Contextual compression
+  compress:
+    class: techniques.compress.CompressTechnique
+    enabled: true
+    config:
+      chunk_size: 500
+
+  # GraphRAG: Entity-based retrieval
+  graph_entity:
+    class: techniques.graph_entity.GraphEntityTechnique
+    enabled: true
+    config:
+      embedding_model: "bge-m3:latest"
+
+  # GraphRAG: Multi-hop reasoning
+  graph_multihop:
+    class: techniques.graph_multihop.GraphMultiHopTechnique
+    enabled: true
+    config:
+      embedding_model: "bge-m3:latest"
+      max_depth: 2
+
+  # GraphRAG: Relationship expansion
+  graph_expand:
+    class: techniques.graph_expand.GraphExpandTechnique
+    enabled: true
+    config:
+      embedding_model: "bge-m3:latest"
+
+  # Generation: Basic LLM generation
+  simple_generation:
+    class: techniques.generate_simple.SimpleGenerationTechnique
+    enabled: true
+    config:
+      model: "glm-4.7:cloud"
+      max_context_docs: 5
+
+  # Generation: Citation-aware generation
+  context_generation:
+    class: techniques.generate_context.ContextGenerationTechnique
+    enabled: true
+    config:
+      model: "glm-4.7:cloud"
+      max_context_docs: 5
+
+  # Generation: Chain-of-thought reasoning
+  cot_generation:
+    class: techniques.generate_cot.ChainOfThoughtGenerationTechnique
+    enabled: true
+    config:
+      model: "glm-4.7:cloud"
+      max_context_docs: 3
+```
+
+### pipelines.yaml
+
+Define pipeline compositions:
+
+```yaml
+# Default query model
+default_query_model: "glm-4.7:cloud"
+
+pipelines:
+  # Simple pipeline: naive retrieval + generation
+  naive_flow:
+    query_model: "glm-4.7:cloud"
+    techniques: [naive_rag, simple_generation]
+
+  # Advanced pipeline: HyDE + naive RAG + reranking + generation
+  advanced_flow:
+    query_model: "glm-4.7:cloud"
+    techniques: [hyde, naive_rag, rerank, context_generation]
+
+  # GraphRAG pipeline: entity extraction + multi-hop + generation
+  graph_flow:
+    query_model: "glm-4.7:cloud"
+    techniques: [graph_entity, graph_multihop, cot_generation]
+
+  # Full pipeline: all techniques
+  full_flow:
+    query_model: "glm-4.7:cloud"
+    techniques: [hyde, naive_rag, multi_query, hybrid, rerank, compress, graph_entity, graph_multihop, context_generation]
+```
+
+### generation.yaml
+
+Generation-specific settings:
+
+```yaml
+generation:
+  # Default model for generation
+  default_model: "glm-4.7:cloud"
+
+  # Maximum number of documents to include as context
+  max_context_docs: 5
+
+  # Generation settings
+  temperature: 0.7
+  max_tokens: 512
+
+  # Prompt templates
+  prompts:
+    simple: |
+      Query: {query}
+
+      Context:
+      {context}
+
+      Answer:
+
+    context: |
+      Query: {query}
+
+      Use the following context to answer. Cite your sources using [n] notation.
+
+      Context:
+      {context}
+
+      Answer:
+
+    cot: |
+      Query: {query}
+
+      Context:
+      {context}
+
+      Think step by step to answer the query. Show your reasoning process.
+
+      Reasoning:
+
+models:
+  # Available generation models
+  available:
+    - name: "glm-4.7:cloud"
+      max_context: 10000
+      supports_citations: true
+    - name: "llama3:8b"
+      max_context: 8000
+      supports_citations: false
+    - name: "llama3:70b"
+      max_context: 12000
+      supports_citations: true
 ```
 
 ## Usage
@@ -139,45 +337,68 @@ uv run pytest tests/test_registry.py -v
 
 # Run with coverage
 uv run pytest tests/ --cov=. --cov-report=html
+
+# Run tests for specific technique
+uv run pytest tests/test_generate_simple_technique.py -v
 ```
 
-### Using the Registry
+### Using the Technique Registry
+
+The registry loads technique definitions from YAML and provides metadata:
 
 ```python
 from registry.technique_registry import TechniqueRegistry
 
-# Load technique definitions
+# Load technique definitions from YAML
 registry = TechniqueRegistry("config/techniques.yaml")
 
 # Get technique metadata
 metadata = registry.get_technique("naive_rag")
-print(metadata.name)  # "naive_rag"
-print(metadata.enabled)  # True
+print(metadata.name)       # "naive_rag"
+print(metadata.enabled)    # True
 print(metadata.get_config("chunk_size"))  # 500
 
-# List available techniques
-available = registry.list_techniques()
+# List all enabled techniques
+enabled = registry.list_techniques()
+for name, meta in enabled.items():
+    print(f"{name}: {meta.class_path}")
+
+# Check if technique exists
+if registry.has_technique("hyde"):
+    print("HyDE technique available")
 ```
 
 ### Building Pipelines
 
+Use PipelineBuilder to compose pipelines from technique configurations:
+
 ```python
 from registry.technique_registry import TechniqueRegistry
 from pipeline.builder import PipelineBuilder
+from nodes.technique_node import TechniqueNode
 
-# Load registry and build pipeline
+# Load registry
 registry = TechniqueRegistry("config/techniques.yaml")
 registry_dict = {name: meta for name, meta in registry._techniques.items()}
 
+# Build pipeline nodes
 builder = PipelineBuilder("config/pipelines.yaml", registry_dict)
-nodes = builder.build_nodes("naive_flow")
+nodes = builder.build_nodes("advanced_flow")
 
-# Each node is a PocketFlow Node
+# Execute pipeline (requires PocketFlow)
+from pocketflow import Flow
+
+flow = Flow(name="rag_pipeline")
 for node in nodes:
-    print(f"Node: {node.technique_name}, Config: {node.config}")
+    flow.add_node(node)
+
+# Run the flow
+# flow.run({"query": "What is the capital of France?"})
 ```
 
 ### Using Ollama Client
+
+The OllamaClient provides embedding generation and text generation:
 
 ```python
 from ollama.client import OllamaClient
@@ -188,72 +409,327 @@ print(client.base_url)  # "http://localhost:11434"
 
 # Or create directly
 client = OllamaClient("http://localhost:11434")
+
+# Generate embeddings
+vector = client.embed("Your text here", "bge-m3:latest")
+print(f"Vector dimension: {len(vector)}")
+
+# Generate text response
+response = client.generate("What is the capital of France?", "glm-4.7:cloud")
+print(response)  # "The capital of France is Paris."
+
+# Batch embeddings for multiple texts
+vectors = client.embed_batch(["Text 1", "Text 2"], "bge-m3:latest")
 ```
+
+### Document Chunking
+
+Process documents with format-aware chunking:
+
+```python
+from utils.text_chunker import TextChunker
+
+chunker = TextChunker()
+
+# Chunk any supported format (auto-detected from extension)
+chunks = chunker.chunk_file("document.pdf", max_chunk_size=500)
+
+# Each chunk is a (content, metadata) tuple
+for content, metadata in chunks:
+    print(f"Source: {metadata['source']}")
+    print(f"Page: {metadata.get('page_number', 'N/A')}")
+    print(f"Section: {metadata.get('section_title', 'N/A')}")
+    print(f"Content preview: {content[:100]}...")
+```
+
+### Using NaiveRAG Technique
+
+Basic retrieval using dense vector search:
+
+```python
+from techniques.naive_rag import NaiveRAGTechnique
+from ollama.client import OllamaClient
+from utils.vector_store import VectorStore
+
+# Initialize components
+client = OllamaClient.from_config("config/models.yaml")
+store = VectorStore({"persist_directory": "./data/chroma", "collection_name": "documents"})
+
+# Create technique
+config = {
+    "embedding_model": "bge-m3:latest",
+    "top_k": 5,
+    "collection_name": "documents"
+}
+technique = NaiveRAGTechnique(config, ollama_client=client, vector_store=store)
+
+# Add documents to vector store
+from utils.document import Document
+docs = [
+    Document(content="Paris is the capital of France.", metadata={"source": "doc1"}, score=0.9),
+    Document(content="London is the capital of England.", metadata={"source": "doc2"}, score=0.8)
+]
+store.add_documents(docs)
+
+# Retrieve documents
+query = "What is the capital of France?"
+documents = technique.retrieve(query)
+
+for doc in documents:
+    print(f"Score: {doc.score:.4f}, Content: {doc.content}")
+```
+
+### Using Generation Techniques
+
+Generate answers using different strategies:
+
+```python
+from techniques.generate_simple import SimpleGenerationTechnique
+from techniques.generate_context import ContextGenerationTechnique
+from techniques.generate_cot import ChainOfThoughtGenerationTechnique
+from ollama.client import OllamaClient
+from utils.document import Document
+from utils.answer import Answer
+
+# Initialize
+client = OllamaClient.from_config("config/models.yaml")
+
+# 1. Simple Generation (basic LLM generation)
+config = {"model": "glm-4.7:cloud", "max_context_docs": 5}
+technique = SimpleGenerationTechnique(config, ollama_client=client)
+
+query = "What is the capital of France?"
+docs = [Document(content="Paris is France's capital city.", metadata={"source": "doc1"}, score=0.9)]
+
+answer = technique.generate(query, docs)
+print(answer.content)  # "The capital of France is Paris."
+print(answer.citations)  # []
+
+# 2. Context Generation (with citations)
+config = {"model": "glm-4.7:cloud", "max_context_docs": 5}
+technique = ContextGenerationTechnique(config, ollama_client=client)
+
+answer = technique.generate(query, docs)
+print(answer.content)    # "Paris is France's capital city [1]."
+print(answer.citations)  # ["doc1"]
+
+# 3. Chain-of-Thought Generation (reasoning)
+config = {"model": "glm-4.7:cloud", "max_context_docs": 3}
+technique = ChainOfThoughtGenerationTechnique(config, ollama_client=client)
+
+answer = technique.generate(query, docs)
+print(answer.content)    # Extracted answer without reasoning steps
+```
+
+### Using GraphRAG Techniques
+
+Multi-hop reasoning using Neo4j graph storage:
+
+```python
+from techniques.graph_entity import GraphEntityTechnique
+from techniques.graph_multihop import GraphMultiHopTechnique
+from stores.neo4j_store import Neo4jStore
+from ollama.client import OllamaClient
+
+# Initialize Neo4j store
+config = {
+    "uri": "bolt://localhost:7687",
+    "user": "neo4j",
+    "password": "password",
+    "database": "rag"
+}
+neo4j_store = Neo4jStore(config)
+
+# Initialize technique
+client = OllamaClient.from_config("config/models.yaml")
+config = {"embedding_model": "bge-m3:latest"}
+technique = GraphEntityTechnique(config, neo4j_store=neo4j_store)
+
+# Find entities in query and retrieve related documents
+query = "What is the relationship between Paris and France?"
+documents = technique.retrieve(query)
+
+for doc in documents:
+    print(f"Entity: {doc.metadata.get('entity', 'N/A')}")
+    print(f"Relationship: {doc.metadata.get('relationship', 'N/A')}")
+    print(f"Content: {doc.content}")
+```
+
+### Full Example: Complete RAG Pipeline
+
+```python
+from registry.technique_registry import TechniqueRegistry
+from pipeline.builder import PipelineBuilder
+from ollama.client import OllamaClient
+from utils.document import Document
+from utils.answer import Answer
+
+# 1. Load configuration
+registry = TechniqueRegistry("config/techniques.yaml")
+client = OllamaClient.from_config("config/models.yaml")
+
+# 2. Build pipeline
+registry_dict = {name: meta for name, meta in registry._techniques.items()}
+builder = PipelineBuilder("config/pipelines.yaml", registry_dict)
+nodes = builder.build_nodes("advanced_flow")
+
+# 3. Prepare documents
+docs = [
+    Document(content="Paris is the capital of France.", metadata={"source": "doc1"}, score=0.9),
+    Document(content="France is a country in Europe.", metadata={"source": "doc2"}, score=0.8)
+]
+
+# 4. Execute pipeline (simplified - typically via PocketFlow)
+query = "What is the capital of France?"
+results = []
+
+for node in nodes:
+    # Execute each technique in the pipeline
+    if hasattr(node, 'technique'):
+        technique = node.technique
+        if hasattr(technique, 'retrieve'):
+            docs = technique.retrieve(query)
+        elif hasattr(technique, 'generate'):
+            answer = technique.generate(query, docs)
+            results.append(answer)
+
+# 5. Output results
+for i, answer in enumerate(results, 1):
+    print(f"Result {i}:")
+    print(f"  Content: {answer.content}")
+    print(f"  Citations: {answer.citations}")
+```
+
+## Supported Document Formats
+
+| Format | Extension | Features |
+|--------|-----------|----------|
+| PDF | .pdf, .PDF | Structure preservation, tables, figures, page numbers |
+| Markdown | .md, .markdown | Heading hierarchy (H1-H3), section paths |
+| Text | .txt | Paragraph-based chunking |
+| Unknown | Fallback | Plain text extraction (graceful degradation) |
+
+## Key Design Patterns
+
+1. **Registry Pattern** - Dynamic technique loading from YAML configuration
+2. **Strategy Pattern** - Swappable retrieval/generation techniques
+3. **Builder Pattern** - Pipeline composition
+4. **Duck Typing** - Flexible technique interfaces
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Configuration Layer (YAML)                │
+│  - models.yaml      - Ollama and model settings             │
+│  - techniques.yaml  - Technique definitions                 │
+│  - pipelines.yaml   - Pipeline compositions                 │
+│  - generation.yaml  - Generation settings                   │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────┐
+│                   Registry Layer                            │
+│  - TechniqueRegistry loads and caches metadata              │
+│  - Provides technique discovery and lookup                  │
+│  - TechniqueNode wraps technique execution                  │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────┐
+│                   Execution Layer (PocketFlow)              │
+│  - PipelineBuilder composes flows                           │
+│  - NaiveRAGTechnique - Dense vector retrieval               │
+│  - HyDETechnique - Hypothetical document embeddings         │
+│  - GraphMultiHopTechnique - Multi-hop reasoning             │
+│  - SimpleGenerationTechnique - Basic LLM generation         │
+│  - ContextGenerationTechnique - Citation-aware generation   │
+│  - ChainOfThoughtGenerationTechnique - Reasoning generation │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Implementation Phases
+
+| Phase | Status | Description |
+|-------|--------|-------------|
+| 1 | Complete | Architecture foundation with mocked techniques |
+| 2 | Complete | Naive RAG with dense retrieval (NaiveRAGTechnique) |
+| 3 | Complete | Document Formats - PDF/Markdown chunking |
+| 4 | Complete | Advanced Retrieval (HyDE, Multi-Query, Hybrid) |
+| 5 | Complete | Precision (Reranking, Contextual Compression) |
+| 6 | Complete | GraphRAG with multi-hop reasoning |
+| 7 | Complete | Generation (Simple, Context, Chain-of-Thought) |
 
 ## Project Structure
 
 ```
 aragsys/
-├── config/                    # Configuration files
-│   ├── models.yaml           # Ollama and model settings
-│   ├── techniques.yaml       # Technique definitions
-│   └── pipelines.yaml        # Pipeline compositions
-├── registry/                  # Technique metadata registry
-│   └── technique_registry.py # TechniqueRegistry, TechniqueMetadata
-├── nodes/                     # PocketFlow workflow nodes
-│   └── technique_node.py     # Generic TechniqueNode
-├── pipeline/                  # Pipeline composition
-│   └── builder.py            # PipelineBuilder
-├── ollama/                    # Ollama API client
-│   └── client.py             # OllamaClient
-├── tests/                     # Test suite
-│   ├── test_registry.py      # Registry tests
-│   ├── test_nodes.py         # Node tests
-│   ├── test_builder.py       # Builder tests
-│   ├── test_ollama.py        # Ollama client tests
-│   └── test_integration.py   # Round-trip integration test
-└── docs/                      # Documentation
-    └── plans/                # Design and implementation plans
+├── config/                           # Configuration files
+│   ├── models.yaml                  # Ollama and model settings
+│   ├── techniques.yaml              # Technique definitions
+│   ├── pipelines.yaml               # Pipeline compositions
+│   ├── generation.yaml              # Generation settings
+│   ├── graphrag.yaml                # GraphRAG settings
+│   ├── neo4j.yaml                   # Neo4j connection settings
+│   └── entities.yaml                # Entity extraction settings
+├── techniques/                       # RAG technique implementations
+│   ├── naive_rag.py                 # Basic dense retrieval
+│   ├── hyde.py                      # Hypothetical Document Embeddings
+│   ├── multi_query.py               # Multiple query variations
+│   ├── hybrid.py                    # Hybrid search
+│   ├── rerank.py                    # Reranking with cross-encoder
+│   ├── compress.py                  # Contextual compression
+│   ├── graph_entity.py              # Entity-based retrieval
+│   ├── graph_multihop.py            # Multi-hop reasoning
+│   ├── graph_expand.py              # Relationship expansion
+│   ├── generate_simple.py           # Basic LLM generation
+│   ├── generate_context.py          # Citation-aware generation
+│   └── generate_cot.py              # Chain-of-thought generation
+├── stores/                           # Storage backends
+│   └── neo4j_store.py               # Neo4j graph storage
+├── registry/                         # Technique metadata registry
+│   └── technique_registry.py        # TechniqueRegistry, TechniqueMetadata
+├── nodes/                            # PocketFlow workflow nodes
+│   └── technique_node.py            # Generic TechniqueNode
+├── pipeline/                         # Pipeline composition
+│   └── builder.py                   # PipelineBuilder
+├── ollama/                           # Ollama API client
+│   └── client.py                    # OllamaClient
+├── utils/                            # Utilities
+│   ├── document.py                  # Document dataclass
+│   ├── answer.py                    # Answer dataclass
+│   ├── vector_store.py              # ChromaDB vector store
+│   ├── entity_extractor.py          # Named entity extraction
+│   ├── pdf_chunker.py               # PDF processing with pdfplumber
+│   ├── markdown_chunker.py          # Markdown section parsing
+│   └── text_chunker.py              # Format-aware dispatcher
+├── tests/                            # Test suite (120 tests)
+│   ├── test_registry.py
+│   ├── test_nodes.py
+│   ├── test_builder.py
+│   ├── test_ollama.py
+│   ├── test_integration.py
+│   ├── test_naive_rag_technique.py
+│   ├── test_vector_store.py
+│   ├── test_pdf_chunker.py
+│   ├── test_markdown_chunker.py
+│   ├── test_text_chunker.py
+│   ├── test_neo4j_store.py
+│   ├── test_entity_extractor.py
+│   ├── test_graph_entity_technique.py
+│   ├── test_graph_multihop_technique.py
+│   ├── test_graph_expand_technique.py
+│   ├── test_answer.py
+│   ├── test_generate_simple_technique.py
+│   ├── test_generate_context_technique.py
+│   ├── test_generate_cot_technique.py
+│   └── test_generation_config.py
+├── docs/                             # Documentation
+│   └── plans/                       # Design and implementation plans
+├── main.py                           # CLI entry point
+├── pyproject.toml                    # Dependencies
+├── requirements.txt                  # Runtime dependencies
+├── README.md                         # This file
+└── CLAUDE.md                         # Development guidance
 ```
-
-## Architecture
-
-### Three-Layer Design
-
-```
-┌─────────────────────────────────────────────────┐
-│         Configuration Layer (YAML)              │
-│  - techniques.yaml, pipelines.yaml, models.yaml │
-└───────────────────┬─────────────────────────────┘
-                    │
-┌───────────────────▼─────────────────────────────┐
-│         Registry Layer                          │
-│  - TechniqueRegistry loads and caches metadata  │
-│  - Provides technique discovery and lookup      │
-└───────────────────┬─────────────────────────────┘
-                    │
-┌───────────────────▼─────────────────────────────┐
-│         Execution Layer (PocketFlow)            │
-│  - PipelineBuilder composes flows              │
-│  - TechniqueNode wraps technique execution     │
-└─────────────────────────────────────────────────┘
-```
-
-### Design Principles
-
-- **YAGNI** - Only build what's needed for current phase
-- **SOLID** - Single Responsibility, Dependency Injection, etc.
-- **Extensibility** - Add techniques via YAML, not code changes
-- **Testability** - All components tested in isolation
-
-## Implementation Phases
-
-1. **Phase 1 (MVP - Complete)**: Architecture foundation with mocked techniques
-2. **Phase 2**: Naive RAG with dense retrieval
-3. **Phase 3**: Advanced retrieval (HyDE, Multi-Query, Hybrid search)
-4. **Phase 4**: Precision (Reranking, Contextual Compression)
-5. **Phase 5**: GraphRAG with multi-hop reasoning
-6. **Phase 6**: Agentic self-correction with iterative refinement
 
 ## Contributing
 
@@ -261,16 +737,44 @@ aragsys/
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Run tests (`uv run pytest tests/ -v`)
-5. Commit your changes
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+5. Update documentation as needed
+6. Commit your changes
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
 
 ## License
 
-MIT License - see LICENSE file for details
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
 - Built with [PocketFlow](https://the-pocket.github.io/PocketFlow/) for workflow orchestration
 - Uses [Ollama](https://ollama.com/) for local LLM inference
 - Inspired by modern RAG architecture patterns
+- Uses [pdfplumber](https://github.com/jsvine/pdfplumber) for PDF structure extraction
+- Uses [ChromaDB](https://www.chromadb.com/) for vector storage
+
+## Commands Reference
+
+```bash
+# Install dependencies
+uv sync
+
+# Run all tests
+uv run pytest tests/ -v
+
+# Run specific test file
+uv run pytest tests/test_registry.py -v
+
+# Run with coverage
+uv run pytest tests/ --cov=. --cov-report=html
+
+# Run specific test
+uv run pytest tests/test_registry.py::TestTechniqueRegistry::test_technique_registry_loads -v
+
+# Check code quality (if ruff is configured)
+uv run ruff check .
+
+# Type checking (if mypy is configured)
+uv run mypy .
+```
