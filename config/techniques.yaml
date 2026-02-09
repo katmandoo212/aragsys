@@ -76,5 +76,26 @@ techniques:
       max_hops: 2
       min_doc_count: 2
 
+  simple_generation:
+    class: techniques.generate_simple.SimpleGenerationTechnique
+    enabled: true
+    config:
+      model: "glm-4.7:cloud"
+      max_context_docs: 5
+
+  context_generation:
+    class: techniques.generate_context.ContextGenerationTechnique
+    enabled: true
+    config:
+      model: "glm-4.7:cloud"
+      max_context_docs: 5
+
+  cot_generation:
+    class: techniques.generate_cot.ChainOfThoughtGenerationTechnique
+    enabled: true
+    config:
+      model: "glm-4.7:cloud"
+      max_context_docs: 3
+
   disabled_technique:
     enabled: false
