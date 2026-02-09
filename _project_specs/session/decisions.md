@@ -182,3 +182,213 @@ Track key decisions for future reference. Never delete entries.
 - config/techniques.yaml - Technique definitions
 - config/pipelines.yaml - Pipeline compositions
 - config/models.yaml - Ollama settings
+
+---
+
+## [2026-02-05] Phase 2 - Vector Store - ChromaDB
+
+**Decision**: Use ChromaDB for vector storage
+
+**Context**: Phase 2 Naive RAG implementation
+
+**Options Considered**:
+1. ChromaDB
+2. Qdrant
+3. Pinecone (cloud)
+
+**Choice**: ChromaDB
+
+**Reasoning**:
+- Lightweight and embedded (no separate service)
+- Python-native
+- Easy to set up for local development
+- Good for single-user research tool
+
+**Trade-offs**:
+- Less scalable than cloud solutions
+- Limited advanced indexing features
+
+**References**:
+- utils/vector_store.py - ChromaDB wrapper
+- config/models.yaml - Vector store settings
+
+---
+
+## [2026-02-07] Phase 3 - PDF Parsing - pdfplumber
+
+**Decision**: Use pdfplumber over pypdf for PDF extraction
+
+**Context**: Phase 3 Document Formats implementation
+
+**Options Considered**:
+1. pdfplumber
+2. pypdf
+3. PyMuPDF
+
+**Choice**: pdfplumber
+
+**Reasoning**:
+- Better table extraction
+- More robust layout analysis
+- Preserves document structure better
+- Well-maintained
+
+**References**:
+- utils/pdf_chunker.py - PDF processing with pdfplumber
+
+---
+
+## [2026-02-07] Phase 4 - Graph Store - Neo4j
+
+**Decision**: Use Neo4j for entity graph storage
+
+**Context**: Phase 4 Advanced Retrieval implementation
+
+**Options Considered**:
+1. Neo4j
+2. ArangoDB
+3. Custom in-memory graph
+
+**Choice**: Neo4j
+
+**Reasoning**:
+- Mature graph database
+- Cypher query language is expressive
+- Good performance for multi-hop queries
+- Industry standard for graph use cases
+
+**Trade-offs**:
+- Requires separate service installation
+- More complex setup than embedded options
+
+**References**:
+- stores/neo4j_store.py - Neo4j store implementation
+- config/neo4j.yaml - Neo4j connection settings
+
+---
+
+## [2026-02-07] Phase 4 - Hybrid Search - Reciprocal Rank Fusion
+
+**Decision**: Use RRF for combining dense and sparse retrieval
+
+**Context**: HybridTechnique implementation
+
+**Options Considered**:
+1. Reciprocal Rank Fusion (RRF)
+2. Weighted score average
+3. Learning to rank
+
+**Choice**: RRF
+
+**Reasoning**:
+- Simple and effective
+- No training required
+- Standard approach for hybrid search
+- Configurable k parameter
+
+**References**:
+- techniques/hybrid.py - RRF implementation
+
+---
+
+## [2026-02-07] Phase 5 - Reranking - LLM-based scoring
+
+**Decision**: Use LLM prompt for reranking instead of cross-encoder
+
+**Context**: RerankTechnique implementation
+
+**Options Considered**:
+1. LLM prompt scoring
+2. Cross-encoder model
+3. Learnable reranker
+
+**Choice**: LLM prompt scoring
+
+**Reasoning**:
+- Uses existing Ollama infrastructure
+- Simpler than cross-encoder integration
+- More flexible (can explain reasoning)
+- Works well with current LLM models
+
+**Trade-offs**:
+- Slower than cross-encoder
+- Less precise than dedicated reranker models
+
+**References**:
+- techniques/rerank.py - LLM-based reranking
+
+---
+
+## [2026-02-07] Phase 6 - Graph Techniques - Entity-based retrieval
+
+**Decision**: Implement three complementary graph techniques
+
+**Context**: Phase 6 GraphRAG implementation
+
+**Options Considered**:
+1. Single complex graph technique
+2. Three modular techniques (entity, multihop, expand)
+3. User-customizable graph queries
+
+**Choice**: Three modular techniques
+
+**Reasoning**:
+- Each technique has distinct use case
+- Composable with other techniques
+- Follows existing technique pattern
+- Easier to test and maintain
+
+**References**:
+- techniques/graph_entity.py - Entity-based retrieval
+- techniques/graph_multihop.py - Multi-hop reasoning
+- techniques/graph_expand.py - Relationship expansion
+
+---
+
+## [2026-02-07] Phase 7 - Generation - Answer dataclass
+
+**Decision**: Create dedicated Answer dataclass for generation responses
+
+**Context**: Phase 7 Generation implementation
+
+**Options Considered**:
+1. Return dict
+2. Return tuple
+3. Create Answer dataclass
+
+**Choice**: Answer dataclass
+
+**Reasoning**:
+- Type-safe and IDE-friendly
+- Clear structure (content, metadata, citations)
+- Extensible for future fields
+- Follows Python best practices
+
+**References**:
+- utils/answer.py - Answer dataclass definition
+
+---
+
+## [2026-02-07] Phase 7 - Generation Strategies - Three approaches
+
+**Decision**: Implement three complementary generation strategies
+
+**Context**: Phase 7 Generation implementation
+
+**Options Considered**:
+1. Single configurable technique
+2. Three techniques (simple, context, CoT)
+3. Technique with pluggable strategies
+
+**Choice**: Three techniques
+
+**Reasoning**:
+- Different use cases benefit from different strategies
+- Simple for basic queries, Context for citations, CoT for reasoning
+- Composable with retrieval techniques
+- Matches existing pattern
+
+**References**:
+- techniques/generate_simple.py - Basic generation
+- techniques/generate_context.py - Citation-aware generation
+- techniques/generate_cot.py - Chain-of-thought generation
