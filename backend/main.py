@@ -9,7 +9,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import yaml
 
+from backend.routers import query_router, documents_router, pipelines_router, health_router
+
 app = FastAPI(title="Scientific Agentic RAG Framework")
+
+# Include routers
+app.include_router(health_router)
+app.include_router(query_router)
+app.include_router(documents_router)
+app.include_router(pipelines_router)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
@@ -26,12 +34,6 @@ try:
             config = yaml.safe_load(f) or {}
 except (yaml.YAMLError, OSError) as e:
     config = {"error": f"Failed to load config: {e}"}
-
-
-@app.get("/api/health")
-async def health_check() -> dict[str, Any]:
-    """Health check endpoint."""
-    return {"status": "ok", "models": config.get("generation_models", {})}
 
 
 @app.get("/", response_class=HTMLResponse)
