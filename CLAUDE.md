@@ -46,6 +46,25 @@ The project implements an iterative RAG system using:
 5. **Phase 5 (Complete):** Precision (Reranking, Contextual Compression)
 6. **Phase 6 (Complete):** GraphRAG with multi-hop reasoning
 7. **Phase 7 (Complete):** Generation (Simple, Context, Chain-of-Thought)
+8. **Phase 8 (Complete):** Web Frontend (FastAPI + Bootstrap + HTMX)
+
+## Web Frontend
+
+The project includes a FastAPI-based web frontend for interactive RAG queries:
+
+**Frontend:**
+- Query workspace with real-time progress (SSE)
+- Document management (web fetch + file upload)
+- Monitoring dashboard with analytics
+- Bootstrap 5 + HTMX for responsive UI
+
+**To run:**
+```bash
+cd G:\home\blt\github\aragsys
+uv run uvicorn backend.main:app --reload --port 8000
+```
+
+**Access:** http://localhost:8000
 
 ## Key Files
 

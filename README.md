@@ -2,7 +2,7 @@
 
 A pluggable, extensible Retrieval-Augmented Generation framework for multi-hop reasoning over academic and clinical literature.
 
-[![Tests](https://img.shields.io/badge/tests-120%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-144%20passing-brightgreen)](tests/)
 
 ## Overview
 
@@ -18,16 +18,16 @@ The framework uses YAML-driven configuration for flexible composition of RAG tec
 
 ## Current Status
 
-**Phase:** Phase 7 Complete - Generation (2026-02-07)
+**Phase:** Phase 8 Complete - Web Frontend (2026-02-10)
 
-Phase 7 adds:
-- Answer dataclass for generation responses (content, metadata, citations)
-- OllamaClient generation model configuration
-- SimpleGenerationTechnique: Basic LLM generation with document context
-- ContextGenerationTechnique: Citation-aware generation with source markers
-- ChainOfThoughtGenerationTechnique: Step-by-step reasoning with answer extraction
+Phase 8 adds:
+- FastAPI-based web frontend with query workspace
+- Real-time progress streaming via SSE
+- Document management (web fetch + file upload)
+- Monitoring dashboard with analytics
+- Bootstrap 5 + HTMX for responsive UI
 
-**Total: 120 tests passing** (99 Phase 1-6 + 21 Phase 7)
+**Total: 144 tests passing** (120 Phase 1-7 + 24 Phase 8)
 
 ## Requirements
 
@@ -657,11 +657,50 @@ for i, answer in enumerate(results, 1):
 | 5 | Complete | Precision (Reranking, Contextual Compression) |
 | 6 | Complete | GraphRAG with multi-hop reasoning |
 | 7 | Complete | Generation (Simple, Context, Chain-of-Thought) |
+| 8 | Complete | Web Frontend (FastAPI + Bootstrap + HTMX) |
+
+## Running the Web Frontend
+
+The project includes a FastAPI-based web frontend for interactive RAG queries:
+
+```bash
+# Start the web server
+uv run uvicorn backend.main:app --reload --port 8000
+
+# Access the application
+# Open http://localhost:8000 in your browser
+```
+
+**Web Frontend Features:**
+- Query workspace with real-time progress (Server-Sent Events)
+- Document management (web fetch + file upload)
+- Monitoring dashboard with analytics
+- Responsive UI built with Bootstrap 5 + HTMX
 
 ## Project Structure
 
 ```
 aragsys/
+├── backend/                          # FastAPI web application
+│   ├── api/                         # API endpoints
+│   │   ├── document.py              # Document management endpoints
+│   │   ├── query.py                 # Query execution endpoints
+│   │   └── monitoring.py            # Monitoring/analytics endpoints
+│   ├── static/                      # Static assets
+│   │   └── css/                     # Custom styles
+│   ├── templates/                   # HTML templates
+│   │   ├── index.html               # Main application page
+│   │   └── components/              # Reusable HTMX components
+│   ├── services/                    # Business logic services
+│   │   ├── query_service.py         # Query orchestration service
+│   │   ├── document_service.py      # Document processing service
+│   │   └── monitoring_service.py    # Analytics service
+│   ├── models/                      # Pydantic models
+│   │   ├── document.py              # Document-related models
+│   │   ├── query.py                 # Query-related models
+│   │   └── monitoring.py            # Monitoring-related models
+│   ├── main.py                      # FastAPI application entry point
+│   └── app_config.py                # Application configuration
 ├── config/                           # Configuration files
 │   ├── models.yaml                  # Ollama and model settings
 │   ├── techniques.yaml              # Technique definitions
@@ -701,7 +740,7 @@ aragsys/
 │   ├── pdf_chunker.py               # PDF processing with pdfplumber
 │   ├── markdown_chunker.py          # Markdown section parsing
 │   └── text_chunker.py              # Format-aware dispatcher
-├── tests/                            # Test suite (120 tests)
+├── tests/                            # Test suite (144 tests)
 │   ├── test_registry.py
 │   ├── test_nodes.py
 │   ├── test_builder.py
