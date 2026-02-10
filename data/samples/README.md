@@ -2,7 +2,7 @@
 
 This directory contains pre-loaded sample documents for the web demo.
 
-Add scientific and clinical literature files here:
+Documents are downloaded from arxiv.org and automatically populated here:
 - Clinical trial PDFs
 - Medical review articles
 - Pharmacology studies
