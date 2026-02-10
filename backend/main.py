@@ -1,5 +1,8 @@
 """FastAPI main application."""
 
+from pathlib import Path
+from typing import Any
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -15,12 +18,18 @@ app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 templates = Jinja2Templates(directory="frontend/templates")
 
 # Load configuration
-with open("config/models.yaml") as f:
-    config = yaml.safe_load(f)
+config_path = Path("config/models.yaml")
+config: dict[str, Any] = {}
+try:
+    if config_path.exists():
+        with open(config_path) as f:
+            config = yaml.safe_load(f) or {}
+except (yaml.YAMLError, OSError) as e:
+    config = {"error": f"Failed to load config: {e}"}
 
 
 @app.get("/api/health")
-async def health_check():
+async def health_check() -> dict[str, Any]:
     """Health check endpoint."""
     return {"status": "ok", "models": config.get("generation_models", {})}
 
