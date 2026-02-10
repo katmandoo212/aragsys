@@ -140,7 +140,7 @@ class WebFetcher:
 
     def _process_html(self, url: str, html: str) -> FetchResult:
         """Process HTML content."""
-        soup = BeautifulSoup(html, "lxml")
+        soup = BeautifulSoup(html, "html.parser")
 
         title = self._extract_title_from_html(html)
         body = self._extract_body_from_html(html)
@@ -169,7 +169,7 @@ class WebFetcher:
     def _extract_title_from_html(self, html: str) -> str:
         """Extract title from HTML."""
         try:
-            soup = BeautifulSoup(html, "lxml")
+            soup = BeautifulSoup(html, "html.parser")
             title_tag = soup.find("title")
             if title_tag:
                 return title_tag.get_text().strip()
@@ -180,7 +180,7 @@ class WebFetcher:
     def _extract_body_from_html(self, html: str) -> str:
         """Extract body text from HTML."""
         try:
-            soup = BeautifulSoup(html, "lxml")
+            soup = BeautifulSoup(html, "html.parser")
             body = soup.find("body")
             if body:
                 # Remove script and style elements
