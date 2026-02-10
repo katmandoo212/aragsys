@@ -73,6 +73,13 @@ class QueryEngine:
                 )
             ]
 
+            # Step 2.5: Rerank documents
+            yield ProgressEvent(
+                status="reranking",
+                progress=50,
+                message="Reranking documents..."
+            ).model_dump()
+
             # Step 3: Generate answer
             yield ProgressEvent(
                 status="generating",
