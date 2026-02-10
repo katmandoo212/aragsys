@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">Query Workspace</h2>
+        </div>
+    </div>
+
+    <div class="split-pane">
+        <!-- Query Pane -->
+        <div class="query-pane">
+            <div class="card">
+                <div class="card-body">
+                    <form id="query-form">
+                        <div class="mb-3">
+                            <label class="form-label">Pipeline</label>
+                            <select class="form-select" id="pipeline-select" name="pipeline">
+                                <option value="naive_flow">Naive RAG</option>
+                                <option value="advanced_flow" selected>Advanced RAG (HyDE + Rerank)</option>
+                                <option value="graph_flow">GraphRAG (Multi-hop)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Question</label>
+                            <textarea class="form-control" id="query-input" rows="4"
+                                placeholder="Ask a question about scientific or clinical literature..."
+                                required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="submit-btn">
+                            <i class="bi bi-search"></i> Submit Query
+                            <span class="htmx-indicator spinner-border spinner-border-sm ms-2" role="status"></span>
+                        </button>
+                    </form>
+
+                    <!-- Progress Indicator -->
+                    <div id="progress-container" class="progress-bar-container" style="display: none;">
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                id="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted" id="progress-message">Initializing...</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Retrieved Documents -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="bi bi-files"></i> Retrieved Documents
+                </div>
+                <div class="card-body" id="retrieved-docs">
+                    <p class="text-muted">Submit a query to see retrieved documents.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Pane -->
+        <div class="result-pane">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-chat-text"></i> Answer</span>
+                    <button class="btn btn-sm btn-outline-secondary" id="copy-btn" style="display: none;">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </div>
+                <div class="card-body" id="answer-container">
+                    <p class="text-muted">Your answer will appear here.</p>
+                </div>
+                <div class="card-footer text-muted" id="answer-meta" style="display: none;">
+                    <small>
+                        <span id="response-time"></span> •
+                        <span id="doc-count"></span> documents
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="citation-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="citation-title">Source Document</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="citation-content"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/query.js"></script>
+{% endblock %}
