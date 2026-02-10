@@ -67,3 +67,49 @@ def test_query_record_save_and_retrieve():
         gc.collect()
         time.sleep(0.2)
         db_path.unlink()
+
+
+def test_get_metrics_with_queries():
+    """get_metrics returns correct statistics."""
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        db_path = Path(f.name)
+
+    conn = None
+    try:
+        conn = init_db(db_path)
+        conn.close()
+
+        # Save multiple records
+        QueryRecord(
+            query="test 1",
+            pipeline="naive_flow",
+            content="answer 1",
+            citations=["doc1"],
+            response_time_ms=1000,
+            success=True
+        ).save(db_path)
+
+        QueryRecord(
+            query="test 2",
+            pipeline="naive_flow",
+            content="answer 2",
+            citations=["doc2"],
+            response_time_ms=2000,
+            success=False
+        ).save(db_path)
+
+        # Get metrics
+        metrics = QueryRecord.get_metrics(db_path)
+
+        assert metrics["total_queries"] == 2
+        assert metrics["success_rate"] == 50.0
+        assert metrics["avg_response_time_ms"] == 1000.0
+        assert metrics["recent_24h"] >= 0
+
+    finally:
+        # Give SQLite time to release locks on Windows
+        import gc
+        import time
+        gc.collect()
+        time.sleep(0.2)
+        db_path.unlink()

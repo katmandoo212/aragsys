@@ -71,20 +71,27 @@ class QueryRecord:
             )
             rows = cursor.fetchall()
 
-        return [
-            cls(
-                query_id=row["query_id"],
-                query=row["query"],
-                pipeline=row["pipeline"],
-                content=row["content"],
-                citations=json.loads(row["citations"]),
-                response_time_ms=row["response_time_ms"],
-                success=bool(row["success"]),
-                error_message=row["error_message"],
-                timestamp=row["timestamp"],
+        records = []
+        for row in rows:
+            try:
+                citations = json.loads(row["citations"])
+            except json.JSONDecodeError:
+                citations = []
+
+            records.append(
+                cls(
+                    query_id=row["query_id"],
+                    query=row["query"],
+                    pipeline=row["pipeline"],
+                    content=row["content"],
+                    citations=citations,
+                    response_time_ms=row["response_time_ms"],
+                    success=bool(row["success"]),
+                    error_message=row["error_message"],
+                    timestamp=row["timestamp"],
+                )
             )
-            for row in rows
-        ]
+        return records
 
     @classmethod
     def get_metrics(cls, db_path: Path = DATABASE_PATH) -> dict:
