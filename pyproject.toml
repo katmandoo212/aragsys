@@ -29,6 +29,7 @@ test = [
 [tool.uv]
 dev-dependencies = [
     "pytest>=9.0.2",
+    "pytest-asyncio>=0.24.0",
 ]
 
 [dependency-groups]

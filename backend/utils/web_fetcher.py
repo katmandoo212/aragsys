@@ -14,7 +14,7 @@ class FetchResult:
 
     url: str
     title: str
-    content: str
+    content: str | bytes
     content_type: str
     chunk_count: int
     success: bool = True
@@ -42,6 +42,14 @@ class WebFetcher:
     async def close(self):
         """Close the HTTP client."""
         await self.client.aclose()
+
+    async def __aenter__(self):
+        """Async context manager entry."""
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        await self.close()
 
     def validate_url(self, url: str) -> bool:
         """Validate URL format and scheme."""

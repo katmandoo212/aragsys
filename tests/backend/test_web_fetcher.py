@@ -1,5 +1,8 @@
 """Tests for web document fetching."""
 
+import pytest
+from unittest.mock import AsyncMock, patch
+
 from backend.utils.web_fetcher import WebFetcher, FetchResult
 
 
@@ -40,3 +43,22 @@ def test_fetch_result_creation():
     )
     assert result.url == "https://example.com"
     assert result.success is True
+
+
+@pytest.mark.asyncio
+async def test_web_fetcher_fetch_with_mock():
+    """WebFetcher fetch() works with mocked HTTP response."""
+    mock_response = AsyncMock()
+    mock_response.status_code = 200
+    mock_response.headers = {"content-type": "text/html"}
+    mock_response.text = "<html><head><title>Test</title></head><body>Content</body></html>"
+    mock_response.content = b"<html><head><title>Test</title></head><body>Content</body></html>"
+    mock_response.raise_for_status = lambda: None
+
+    async with WebFetcher() as fetcher:
+        with patch.object(fetcher.client, 'get', return_value=mock_response):
+            result = await fetcher.fetch("https://example.com")
+
+    assert result.success is True
+    assert result.title == "Test"
+    assert "Content" in result.content
