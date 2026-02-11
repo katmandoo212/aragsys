@@ -8,15 +8,16 @@ This repository contains the **Scientific Agentic RAG Framework** - a pluggable,
 
 ### Current Status
 
-**Phase:** Phase 7 Complete - Generation (2026-02-07)
+**Phase:** Phase 8 Complete - Web Frontend (2026-02-10)
 
-**Phase 7 adds:**
-- Answer dataclass for generation responses (content, metadata, citations)
-- OllamaClient generation model configuration
-- SimpleGenerationTechnique: Basic LLM generation with document context
-- ContextGenerationTechnique: Citation-aware generation with source markers
-- ChainOfThoughtGenerationTechnique: Step-by-step reasoning with answer extraction
-- **120 tests passing** (99 Phase 1-6 + 21 Phase 7)
+**Phase 8 adds:**
+- FastAPI-based web frontend with query workspace
+- Real-time progress streaming via Server-Sent Events (SSE)
+- Document management (web fetch + file upload)
+- Monitoring dashboard with analytics
+- Bootstrap 5 + HTMX for responsive UI
+- SQLite database for query history and metrics
+- **144 tests passing** (120 Phase 1-7 + 24 Phase 8)
 
 **Supported formats:** .txt, .pdf, .md, .markdown with graceful fallback for unknown types
 
@@ -29,6 +30,7 @@ The project implements an iterative RAG system using:
 - **PocketFlow** for node-based workflow orchestration
 - **Ollama** for local LLM inference
 - **pdfplumber** for PDF structure extraction
+- **FastAPI** for web API
 - **YAML** for all configuration
 
 ### Core Design Patterns
@@ -52,7 +54,7 @@ The project implements an iterative RAG system using:
 
 The project includes a FastAPI-based web frontend for interactive RAG queries:
 
-**Frontend:**
+**Frontend Features:**
 - Query workspace with real-time progress (SSE)
 - Document management (web fetch + file upload)
 - Monitoring dashboard with analytics
@@ -66,14 +68,32 @@ uv run uvicorn backend.main:app --reload --port 8000
 
 **Access:** http://localhost:8000
 
+**API Endpoints:**
+- `GET /` - Landing page
+- `GET /workspace` - Query workspace
+- `GET /documents` - Document management
+- `GET /monitoring` - Analytics dashboard
+- `GET /api/health` - Health check
+- `GET /api/pipelines` - Available pipelines
+- `GET /api/query/history` - Query history
+- `GET /api/query/metrics` - Query metrics
+- `POST /api/query` - Submit a query
+- `GET /api/query/stream/{task_id}` - Stream query progress (SSE)
+- `GET /api/documents` - List documents
+- `POST /api/documents/fetch` - Fetch document from URL
+- `POST /api/documents/upload` - Upload document file
+
 ## Key Files
 
 ### Configuration
 - `config/techniques.yaml` - Technique definitions and their configs
 - `config/pipelines.yaml` - Pipeline compositions
 - `config/models.yaml` - Ollama and model settings
+- `config/generation.yaml` - Generation settings
+- `config/graphrag.yaml` - GraphRAG settings
+- `config/neo4j.yaml` - Neo4j connection settings
 
-### Core Components
+### Backend Components
 - `registry/technique_registry.py` - TechniqueRegistry, TechniqueMetadata
 - `nodes/technique_node.py` - Generic TechniqueNode for PocketFlow
 - `pipeline/builder.py` - PipelineBuilder
@@ -83,6 +103,30 @@ uv run uvicorn backend.main:app --reload --port 8000
 - `utils/text_chunker.py` - Format-aware dispatcher (.txt, .pdf, .md) with fallback
 - `techniques/naive_rag.py` - NaiveRAGTechnique implementation
 - `stores/vector_store.py` - VectorStore with ChromaDB integration
+- `stores/neo4j_store.py` - Neo4j graph storage for GraphRAG
+
+### Web Frontend Components
+- `backend/main.py` - FastAPI application entry point
+- `backend/routers/query.py` - Query API router
+- `backend/routers/documents.py` - Documents API router
+- `backend/routers/health.py` - Health check router
+- `backend/routers/pipelines.py` - Pipelines router
+- `backend/services/query_engine.py` - Query orchestration with SSE streaming
+- `backend/services/document_service.py` - Document processing service
+- `backend/db.py` - SQLite database for query history and metrics
+- `backend/models/query.py` - Pydantic models for queries
+- `backend/models/document.py` - Pydantic models for documents
+- `backend/models/pipeline.py` - Pydantic models for pipelines
+- `backend/utils/web_fetcher.py` - Web document fetching service
+- `frontend/templates/base.html` - Base template
+- `frontend/templates/index.html` - Landing page
+- `frontend/templates/workspace.html` - Query workspace
+- `frontend/templates/documents.html` - Document management
+- `frontend/templates/monitoring.html` - Analytics dashboard
+- `frontend/static/js/query.js` - Query workspace JavaScript
+- `frontend/static/js/documents.js` - Document management JavaScript
+- `frontend/static/js/monitoring.js` - Analytics dashboard JavaScript
+- `frontend/static/css/styles.css` - Custom styles
 
 ### Tests
 - `tests/test_registry.py` - Registry tests (7 tests)
@@ -105,8 +149,13 @@ uv run uvicorn backend.main:app --reload --port 8000
 - `tests/test_generate_context_technique.py` - ContextGenerationTechnique tests (3 tests)
 - `tests/test_generate_cot_technique.py` - ChainOfThoughtGenerationTechnique tests (7 tests)
 - `tests/test_generation_config.py` - Generation config tests (2 tests)
+- `tests/backend/test_db.py` - Database tests (3 tests)
+- `tests/backend/test_main.py` - Main app tests (2 tests)
+- `tests/backend/test_models.py` - Pydantic model tests (11 tests)
+- `tests/backend/test_query_api.py` - Query API tests (3 tests)
+- `tests/backend/test_web_fetcher.py` - Web fetcher tests (5 tests)
 
-**Total: 120 tests, all passing**
+**Total: 144 tests, all passing**
 
 ## Commands
 
@@ -119,6 +168,9 @@ uv run pytest tests/test_registry.py -v
 
 # Install dependencies
 uv sync
+
+# Run web server
+uv run uvicorn backend.main:app --reload --port 8000
 ```
 
 ## Session Management
@@ -167,6 +219,34 @@ Before ending or when context limit approaches:
 - **Dependency injection** - all dependencies injected via YAML config
 - **YAGNI** - only build what's needed for current phase
 - **TDD** - write tests before implementation
+
+## Phase 8 Learnings (Web Frontend)
+
+### Design Decisions
+- **FastAPI over Flask/Django:** Chose FastAPI for async support and automatic API documentation
+- **SSE over WebSockets:** Server-Sent Events for one-way streaming (simpler, stateless)
+- **Bootstrap 5 + HTMX:** Minimal JavaScript, server-driven interactions for better maintainability
+- **SQLite for query history:** Lightweight, zero-config database for demo/mvp
+- **html.parser over lxml:** BeautifulSoup parser choice for Windows compatibility
+
+### Architecture Patterns
+- **Router pattern:** Separate API routers (query, documents, health, pipelines) for modularity
+- **Service layer:** Business logic separated from route handlers
+- **Pydantic models:** API request/response validation with automatic JSON schemas
+- **Async generators:** For SSE streaming of progress events
+
+### Testing Insights
+- Backend tests: 24 tests covering models, routers, services, database
+- SSE streaming tests: Verify all progress events are sent
+- Database tests: Ensure schema initialization on all operations
+- Web fetcher tests: Mock httpx for URL fetching tests
+
+### Web Frontend API
+- `POST /api/query` - Returns task_id for async processing
+- `GET /api/query/stream/{task_id}` - SSE stream with progress events
+- Progress events: embedding_query (10%), retrieving (30%), reranking (50%), generating (70%), complete (100%)
+- `GET /api/query/history` - Returns recent queries with pagination
+- `GET /api/query/metrics` - Returns aggregate metrics (total, success_rate, avg_response_time, recent_24h)
 
 ## Phase 3 Learnings (Document Formats)
 
