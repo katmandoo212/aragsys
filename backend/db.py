@@ -28,6 +28,8 @@ class QueryRecord:
 
     def save(self, db_path: Path = DATABASE_PATH) -> int:
         """Save record to database."""
+        # Ensure database is initialized
+        init_db(db_path)
         if self.timestamp is None:
             self.timestamp = datetime.now(timezone.utc).isoformat()
 
@@ -58,6 +60,8 @@ class QueryRecord:
     @classmethod
     def get_recent(cls, db_path: Path = DATABASE_PATH, limit: int = 50) -> List["QueryRecord"]:
         """Get recent query records."""
+        # Ensure database is initialized
+        init_db(db_path)
         with sqlite3.connect(db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
@@ -96,6 +100,8 @@ class QueryRecord:
     @classmethod
     def get_metrics(cls, db_path: Path = DATABASE_PATH) -> dict:
         """Get query metrics."""
+        # Ensure database is initialized
+        init_db(db_path)
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
 

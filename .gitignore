@@ -24,3 +24,13 @@ worktrees/
 # OS
 .DS_Store
 Thumbs.db
+
+# Runtime data
+backend/data/
+*.db
+
+# Runtime data
+backend/data/
+*.db
+*.db-shm
+*.db-wal
