@@ -10,6 +10,10 @@ build/
 .venv/
 venv/
 
+# Environment secrets
+.env
+.env.local
+
 # Worktrees
 .worktrees/
 worktrees/
@@ -24,10 +28,6 @@ worktrees/
 # OS
 .DS_Store
 Thumbs.db
-
-# Runtime data
-backend/data/
-*.db
 
 # Runtime data
 backend/data/
