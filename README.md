@@ -2,7 +2,7 @@
 
 A pluggable, extensible Retrieval-Augmented Generation framework for multi-hop reasoning over academic and clinical literature.
 
-[![Tests](https://img.shields.io/badge/tests-144%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-167%20passing-brightgreen)](tests/)
 
 ## Overview
 
@@ -58,7 +58,7 @@ Phase 8 adds:
 - Monitoring dashboard with analytics
 - Bootstrap 5 + HTMX for responsive UI
 
-**Total: 144 tests passing** (120 Phase 1-7 + 24 Phase 8)
+**Total: 167 tests passing** (144 Phase 1-7 + 23 config loader)
 
 ## Requirements
 
@@ -92,6 +92,21 @@ ollama pull bge-m3:latest        # Embedding model
 ### Step 3: (Optional) Neo4j for GraphRAG
 
 Install from [neo4j.com](https://neo4j.com) and configure in `config/neo4j.yaml`.
+
+### Step 4: Environment Variables (Optional)
+
+Copy the example environment file and configure secrets:
+
+```bash
+cp .env.example .env
+# Edit .env with your settings
+```
+
+The configuration supports environment variables with defaults:
+```yaml
+neo4j:
+  password: "${NEO4J_PASSWORD:-password}"  # Uses env var or default
+```
 
 ## Running the Web Frontend
 
@@ -148,6 +163,22 @@ pipelines:
   advanced_flow:
     query_model: "glm-4.7:cloud"
     techniques: [hyde, naive_rag, rerank, context_generation]
+```
+
+### Environment Variables
+
+Configuration files support environment variable substitution:
+
+```yaml
+# neo4j.yaml - Use environment variables with defaults
+neo4j:
+  password: "${NEO4J_PASSWORD:-password}"  # Uses $NEO4J_PASSWORD or 'password'
+```
+
+Create `.env` from the template:
+```bash
+cp .env.example .env
+# Edit .env with your actual values
 ```
 
 ## Query Pipelines
@@ -337,6 +368,7 @@ aragsys/
 ├── ollama/                           # Ollama API client
 │   └── client.py
 ├── utils/                            # Utilities
+│   ├── config_loader.py              # Env var config loader
 │   ├── document.py
 │   ├── answer.py
 │   ├── vector_store.py
@@ -344,12 +376,13 @@ aragsys/
 │   ├── pdf_chunker.py
 │   ├── markdown_chunker.py
 │   └── text_chunker.py
-├── tests/                            # Test suite (144 tests)
+├── tests/                            # Test suite (167 tests)
 │   ├── test_*.py
 │   └── backend/
 │       └── test_*.py
 ├── docs/                             # Documentation
 │   └── USER_GUIDE.md
+├── .env.example                      # Environment config template
 └── pyproject.toml                    # Dependencies
 ```
 
