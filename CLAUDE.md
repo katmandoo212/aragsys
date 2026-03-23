@@ -17,7 +17,7 @@ This repository contains the **Scientific Agentic RAG Framework** - a pluggable,
 - Monitoring dashboard with analytics
 - Bootstrap 5 + HTMX for responsive UI
 - SQLite database for query history and metrics
-- **144 tests passing** (120 Phase 1-7 + 24 Phase 8)
+- **167 tests passing** (144 Phase 1-7 + 23 config loader)
 
 **Supported formats:** .txt, .pdf, .md, .markdown with graceful fallback for unknown types
 
@@ -92,12 +92,15 @@ uv run uvicorn backend.main:app --reload --port 8000
 - `config/generation.yaml` - Generation settings
 - `config/graphrag.yaml` - GraphRAG settings
 - `config/neo4j.yaml` - Neo4j connection settings
+- `config/*.yaml` - Support `${VAR:-default}` env var substitution
+- `.env.example` - Environment variable template (copy to `.env` for secrets)
 
 ### Backend Components
 - `registry/technique_registry.py` - TechniqueRegistry, TechniqueMetadata
 - `nodes/technique_node.py` - Generic TechniqueNode for PocketFlow
 - `pipeline/builder.py` - PipelineBuilder
 - `ollama/client.py` - OllamaClient
+- `utils/config_loader.py` - YAML config with `${VAR:-default}` env var expansion
 - `utils/pdf_chunker.py` - PDFChunker with structure preservation (tables, figures, page numbers)
 - `utils/markdown_chunker.py` - MarkdownChunker with section-aware H1-H3 heading paths
 - `utils/text_chunker.py` - Format-aware dispatcher (.txt, .pdf, .md) with fallback
@@ -154,8 +157,9 @@ uv run uvicorn backend.main:app --reload --port 8000
 - `tests/backend/test_models.py` - Pydantic model tests (11 tests)
 - `tests/backend/test_query_api.py` - Query API tests (3 tests)
 - `tests/backend/test_web_fetcher.py` - Web fetcher tests (5 tests)
+- `tests/test_config_loader.py` - Config loader tests (23 tests)
 
-**Total: 144 tests, all passing**
+**Total: 167 tests, all passing**
 
 ## Commands
 
@@ -163,14 +167,25 @@ uv run uvicorn backend.main:app --reload --port 8000
 # Run tests
 uv run pytest tests/ -v
 
+# Run with coverage
+uv run pytest tests/ --cov=. --cov-report=html
+
 # Run specific test file
 uv run pytest tests/test_registry.py -v
 
 # Install dependencies
 uv sync
 
+# Upgrade dependencies
+uv lock --upgrade
+
 # Run web server
 uv run uvicorn backend.main:app --reload --port 8000
+
+# Git recovery (if .git damaged but objects intact)
+# Create .git/HEAD with: ref: refs/heads/main
+# Create .git/refs/heads/main with commit hash
+# Run git checkout to restore files
 ```
 
 ## Session Management
@@ -219,6 +234,7 @@ Before ending or when context limit approaches:
 - **Dependency injection** - all dependencies injected via YAML config
 - **YAGNI** - only build what's needed for current phase
 - **TDD** - write tests before implementation
+- **Dependency format** - use `dependency-groups.dev` in pyproject.toml (not deprecated `tool.uv.dev-dependencies`)
 
 ## Phase 8 Learnings (Web Frontend)
 
